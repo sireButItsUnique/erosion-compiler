@@ -96,13 +96,6 @@ public:
 };
 
 int main(int argc, string argv) {
-    fstream source("testPreprocessed.cor");
-    string buffer;
-
-    while (cin >> buffer) {
-
-    }
-
-    source.close();
+    Lexer* lexer = new Lexer("preprocessed.cor");
     return 0;
 }
