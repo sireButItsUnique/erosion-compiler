@@ -3,11 +3,33 @@
 #include <string>
 using namespace std;
 
-class SyntaxToken {
+enum TokenCode {
+    op,
+    keyword,
+    variable,
+    function,
+    integer,
+    floating,
+    stringLiteral,
+    bracket,
+};
 
+class SyntaxToken {
+public:
+    int start;
+    int length;
+    TokenCode type;
+
+    SyntaxToken(int start, int len, TokenCode type) {
+        this->start = start;
+        this->length = len;
+        this->type = type;
+        return;
+    }
 };
 
 class Lexer {
+public:
     fstream sourceFile;
     string source;
     int pos;
@@ -26,8 +48,49 @@ class Lexer {
     }
 
     SyntaxToken nextToken() {
-        if (isdigit(source[pos]) ) {
+        int& pos = this->pos;
+        string& source = this->source;
 
+        //number found
+        if (isdigit(source[pos])) {
+            int start = pos;
+            while (isdigit(source[pos])) {
+                pos++;
+            }
+            int end = pos - 1;
+            return SyntaxToken(start, end - start + 1, integer);
+        } 
+        
+        //string found
+        else if (source[pos] == '\"') {
+            int start = pos;
+            while (source[pos] != '\"') {
+                pos++;
+            }
+            int end = pos;
+            return SyntaxToken(start, end - start + 1, stringLiteral);
+        }
+
+        //keyword, variable, or function found
+        else if (isalnum(source[pos])) {
+            int start = pos;
+            while (isalnum(source[pos])) {
+                pos++;
+            }
+            int end = pos - 1;
+            string text = source.substr(start, end);
+            
+            //check here which one it is
+            return SyntaxToken(start, end - start + 1, keyword);
+        }
+
+        //operation or bracket
+        else {
+            if (source[pos] == '{' || source[pos] == '}' || source[pos] == '[' || source[pos] == ']' || source[pos] == '(' || source[pos] == ')') {
+                return SyntaxToken(pos, 1, bracket);
+            } else {
+                return SyntaxToken(pos, 1, op);
+            }
         }
     }
 };
@@ -35,18 +98,6 @@ class Lexer {
 int main() {
     fstream source("testPreprocessed.cor");
     string buffer;
-
-    enum TokenCode {
-        op,
-        variable,
-        function,
-        integer,
-        floating,
-        string,
-        curlyBracket,
-        squareBracket,
-        roundBracket,
-    };
 
     while (cin >> buffer) {
 
