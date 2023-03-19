@@ -12,6 +12,7 @@ enum TokenCode {
     floating,
     stringLiteral,
     bracket,
+    newLine,
 };
 
 class SyntaxToken {
@@ -21,6 +22,7 @@ public:
     TokenCode type;
 
     SyntaxToken(int start, int len, TokenCode type) {
+        cout << "startPos: " << start << ", Length: " << len << ", of type: " << type << endl;
         this->start = start;
         this->length = len;
         this->type = type;
@@ -88,14 +90,22 @@ public:
         else {
             if (source[pos] == '{' || source[pos] == '}' || source[pos] == '[' || source[pos] == ']' || source[pos] == '(' || source[pos] == ')') {
                 return SyntaxToken(pos, 1, bracket);
+            } else if (source[pos] == ';') {
+                return SyntaxToken(pos, 1, newLine);
             } else {
                 return SyntaxToken(pos, 1, op);
             }
+            this->pos++;
         }
     }
 };
 
-int main(int argc, string argv) {
+int main() {
     Lexer* lexer = new Lexer("preprocessed.cor");
+    lexer->nextToken();
+    lexer->nextToken();
+    lexer->nextToken();
+    lexer->nextToken();
+    lexer->nextToken();
     return 0;
 }
