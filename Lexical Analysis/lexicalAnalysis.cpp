@@ -102,10 +102,5 @@ public:
 
 int main() {
     Lexer* lexer = new Lexer("preprocessed.cor");
-    lexer->nextToken();
-    lexer->nextToken();
-    lexer->nextToken();
-    lexer->nextToken();
-    lexer->nextToken();
     return 0;
 }
