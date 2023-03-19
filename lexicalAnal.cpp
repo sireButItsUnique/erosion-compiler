@@ -95,7 +95,7 @@ public:
     }
 };
 
-int main() {
+int main(int argc, string argv) {
     fstream source("testPreprocessed.cor");
     string buffer;
 

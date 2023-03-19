@@ -3,11 +3,19 @@
 #include <string>
 using namespace std;
 
-int main() {
-    fstream source("test.cor");
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        cout << "Format: erosion <filename>\n";
+        return 0;
+    }
+
+    fstream source(argv[1]);
     fstream res;
-    res.open("testPreprocessed.cor", ios::out);
+    res.open("preprocessed.cor", ios::out);
     string buffer;
+    if (!source) {
+        cout << "Invalid file\n";
+    }
 
     if (!res) {
         return 0;
