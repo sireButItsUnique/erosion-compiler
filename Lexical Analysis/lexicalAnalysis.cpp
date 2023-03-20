@@ -48,6 +48,7 @@ public:
             this->source += buffer;
             this->source += ' ';
         }
+        cout << this->source.size() << endl;
         cout << this->source << endl;
         this->sourceFile.close();
         return;
@@ -60,8 +61,11 @@ public:
         }
 
         while (this->source[pos] == ' ') {
-            cout << "stuck\n";
             pos++;
+        }
+        
+        if (pos >= this->source.size()) {
+            return nullptr;
         }
 
         string& source = this->source;
@@ -128,7 +132,9 @@ public:
                     !(curChar == ';' || curChar == ' ' || curChar == '\"') && 
                     !(curChar == '{' || curChar == '}' || curChar == '[' || curChar == ']' || curChar == '(' || curChar == ')')
                 ) {
+
                     pos++;
+                    curChar = source[pos];
                 }
                 int end = pos;
                 string text = source.substr(start, end - start);
@@ -141,10 +147,8 @@ public:
 //
 int main() {
     Lexer* lexer = new Lexer("test.cor");
-    lexer->nextToken();
-    lexer->nextToken();
-    lexer->nextToken();
-    lexer->nextToken();
-    lexer->nextToken();
+    while (lexer->nextToken()) {
+
+    }
     return 0;
 }
