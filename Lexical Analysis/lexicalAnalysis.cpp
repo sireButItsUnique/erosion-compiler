@@ -19,13 +19,15 @@ class SyntaxToken {
 public:
     int start;
     int length;
+    string text;
     TokenCode type;
 
-    SyntaxToken(int start, int len, TokenCode type) {
-        cout << "startPos: " << start << ", Length: " << len << ", of type: " << type << endl;
+    SyntaxToken(int start, int len, string text, TokenCode type) {
+        cout << "startPos: " << start << ", Length: " << len << ", Text: " << text << ", of type: " << type << endl;
         this->start = start;
         this->length = len;
         this->type = type;
+        this->text = text;
         return;
     }
 };
@@ -49,8 +51,16 @@ public:
         return;
     }
 
-    SyntaxToken nextToken() {
+    SyntaxToken* nextToken() {
         int& pos = this->pos;
+        if (pos >= this->source.size()) {
+            return nullptr;
+        }
+        while (this->source[pos] == ' ') {
+            cout << pos << endl;
+            pos++;
+        }
+
         string& source = this->source;
 
         //number found
@@ -59,18 +69,24 @@ public:
             while (isdigit(source[pos])) {
                 pos++;
             }
-            int end = pos - 1;
-            return SyntaxToken(start, end - start + 1, integer);
+            int end = pos;
+            string text = source.substr(start, end);
+
+            return new SyntaxToken(start, end - start, text, integer);
         } 
         
         //string found
         else if (source[pos] == '\"') {
             int start = pos;
+            pos++;
             while (source[pos] != '\"') {
                 pos++;
             }
             int end = pos;
-            return SyntaxToken(start, end - start + 1, stringLiteral);
+            pos++;
+            string text = source.substr(start, end);
+
+            return new SyntaxToken(start, end - start + 1, text, stringLiteral);
         }
 
         //keyword, variable, or function found
@@ -79,29 +95,57 @@ public:
             while (isalnum(source[pos])) {
                 pos++;
             }
-            int end = pos - 1;
+            int end = pos;
             string text = source.substr(start, end);
-            
+
             //check here which one it is
-            return SyntaxToken(start, end - start + 1, keyword);
+            return new SyntaxToken(start, end - start, text, keyword);
         }
 
-        //operation or bracket
+        //special character
         else {
+            cout << pos << endl;
+            //brackets
             if (source[pos] == '{' || source[pos] == '}' || source[pos] == '[' || source[pos] == ']' || source[pos] == '(' || source[pos] == ')') {
-                return SyntaxToken(pos, 1, bracket);
-            } else if (source[pos] == ';') {
-                return SyntaxToken(pos, 1, newLine);
-            } else {
-                return SyntaxToken(pos, 1, op);
+                pos++;
+                return new SyntaxToken(pos - 1, 1, string{source[pos - 1]}, bracket);
+            } 
+            
+            //semicolon
+            else if (source[pos] == ';') {
+                this->pos++;
+                return new SyntaxToken(pos - 1, 1, ";", newLine);
+            } 
+            
+            //operator
+            else {
+                int start = pos;
+                char curChar = source[pos];
+                while (
+                    !isalnum(curChar) && 
+                    !(curChar == ';' || curChar == ' ' || curChar == '\"') && 
+                    !(curChar == '{' || curChar == '}' || curChar == '[' || curChar == ']' || curChar == '(' || curChar == ')')
+                ) {
+                    pos++;
+                }
+                int end = pos;
+                string text = source.substr(start, end);
+
+                return new SyntaxToken(start, end - start, text, op);
             }
-            this->pos++;
         }
     }
 };
 
 int main() {
+<<<<<<< Updated upstream
     Lexer* lexer = new Lexer("preprocessed.cor");
 
+=======
+    Lexer* lexer = new Lexer("test.cor");
+    lexer->nextToken();
+    lexer->nextToken();
+    lexer->nextToken();
+>>>>>>> Stashed changes
     return 0;
 }
