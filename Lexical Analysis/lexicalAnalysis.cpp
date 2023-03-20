@@ -46,7 +46,9 @@ public:
         string buffer;
         while (this->sourceFile >> buffer) {
             this->source += buffer;
+            this->source += ' ';
         }
+        cout << this->source << endl;
         this->sourceFile.close();
         return;
     }
@@ -56,8 +58,8 @@ public:
         if (pos >= this->source.size()) {
             return nullptr;
         }
+
         while (this->source[pos] == ' ') {
-            cout << pos << endl;
             pos++;
         }
 
@@ -104,7 +106,6 @@ public:
 
         //special character
         else {
-            cout << pos << endl;
             //brackets
             if (source[pos] == '{' || source[pos] == '}' || source[pos] == '[' || source[pos] == ']' || source[pos] == '(' || source[pos] == ')') {
                 pos++;
