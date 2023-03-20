@@ -1,3 +1,5 @@
+//remember to add flags after colon and "var" or "func"
+
 #include <fstream>
 #include <iostream>
 #include <string>
