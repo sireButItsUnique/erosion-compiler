@@ -13,9 +13,9 @@ enum TokenCode {
     variable,
     function,
 
-    integer,
-    boolean,
-    floating,
+    integerLiteral,
+    booleanLiteral,
+    floatingLiteral,
     stringLiteral,
 
     bracket,
@@ -88,7 +88,7 @@ public:
             int end = pos;
             string text = source.substr(start, end - start);
 
-            return new SyntaxToken(start, end - start, text, integer);
+            return new SyntaxToken(start, end - start, text, integerLiteral);
         } 
         
         //string found
