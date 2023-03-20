@@ -136,16 +136,11 @@ public:
         }
     }
 };
-
+//
 int main() {
-<<<<<<< Updated upstream
-    Lexer* lexer = new Lexer("preprocessed.cor");
-
-=======
     Lexer* lexer = new Lexer("test.cor");
     lexer->nextToken();
     lexer->nextToken();
     lexer->nextToken();
->>>>>>> Stashed changes
     return 0;
 }
