@@ -1,0 +1,22 @@
+compiler steps:
+1. preprocessor
+    a. remove comments and empty lines
+2. lexical analyzer
+    a. go through source file character by character
+    b. match current lexeme against lookup table
+    c. assign each lexeme a code for what type of token it is
+3. syntax analyzer
+    a. constructs parse tree based on tokens from lexical analyzer
+        i. no clue how to actually implement it
+4. semantics analyzer
+    a. checks parse tree to see if its even valid
+        i. should check it against grammar rules
+        ii. no clue how to actually implement it
+5. intermidiate code generator
+    a. generates asm-like code
+        i. no clue how to actually implement it
+6. final code generator
+    a. generates final asm code
+        i. should be based on cpu architecture of machine
+        ii. no clue how to actually implement it 
+
