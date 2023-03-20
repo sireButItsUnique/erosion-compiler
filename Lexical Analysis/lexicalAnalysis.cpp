@@ -60,6 +60,7 @@ public:
         }
 
         while (this->source[pos] == ' ') {
+            cout << "stuck\n";
             pos++;
         }
 
@@ -72,7 +73,7 @@ public:
                 pos++;
             }
             int end = pos;
-            string text = source.substr(start, end);
+            string text = source.substr(start, end - start);
 
             return new SyntaxToken(start, end - start, text, integer);
         } 
@@ -86,7 +87,7 @@ public:
             }
             int end = pos;
             pos++;
-            string text = source.substr(start, end);
+            string text = source.substr(start, end - start + 1);
 
             return new SyntaxToken(start, end - start + 1, text, stringLiteral);
         }
@@ -98,7 +99,7 @@ public:
                 pos++;
             }
             int end = pos;
-            string text = source.substr(start, end);
+            string text = source.substr(start, end - start);
 
             //check here which one it is
             return new SyntaxToken(start, end - start, text, keyword);
@@ -130,7 +131,7 @@ public:
                     pos++;
                 }
                 int end = pos;
-                string text = source.substr(start, end);
+                string text = source.substr(start, end - start);
 
                 return new SyntaxToken(start, end - start, text, op);
             }
@@ -140,6 +141,8 @@ public:
 //
 int main() {
     Lexer* lexer = new Lexer("test.cor");
+    lexer->nextToken();
+    lexer->nextToken();
     lexer->nextToken();
     lexer->nextToken();
     lexer->nextToken();
