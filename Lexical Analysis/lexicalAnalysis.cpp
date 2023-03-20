@@ -102,5 +102,6 @@ public:
 
 int main() {
     Lexer* lexer = new Lexer("preprocessed.cor");
+
     return 0;
 }
