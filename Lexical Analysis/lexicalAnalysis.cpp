@@ -1,16 +1,21 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <unordered_map>
 using namespace std;
 
 enum TokenCode {
     op,
     keyword,
+    type,
     variable,
     function,
+
     integer,
+    boolean,
     floating,
     stringLiteral,
+
     bracket,
     newLine,
 };
@@ -36,11 +41,14 @@ class Lexer {
 public:
     fstream sourceFile;
     string source;
+    string flag;
+    unordered_map<string, TokenCode> declared; 
     int pos;
     
     Lexer(string source) {
         this->pos = 0;
         this->source = "";
+        this->flag = "";
 
         this->sourceFile.open(source);
         string buffer;
@@ -48,8 +56,7 @@ public:
             this->source += buffer;
             this->source += ' ';
         }
-        cout << this->source.size() << endl;
-        cout << this->source << endl;
+
         this->sourceFile.close();
         return;
     }
@@ -69,7 +76,7 @@ public:
         }
 
         string& source = this->source;
-
+        
         //number found
         if (isdigit(source[pos])) {
             int start = pos;
@@ -106,6 +113,31 @@ public:
             string text = source.substr(start, end - start);
 
             //check here which one it is
+            if (this->flag == "funcType") {
+                this->flag = "funcName";
+                return new SyntaxToken(start, end - start, text, type);
+            }
+
+            if (this->flag == "funcName") {
+                this->flag = "";
+                this->declared[text] = function;
+                return new SyntaxToken(start, end - start, text, function);
+            }
+
+            if (this->flag == "varType") {
+                this->flag = "varName";
+                return new SyntaxToken(start, end - start, text, type);
+            }
+
+            if (this->flag == "varName") {
+                this->flag = "";
+                this->declared[text] = variable;
+                return new SyntaxToken(start, end - start, text, variable);
+            }
+
+            if (this->declared.find(text) != this->declared.end()) {
+                return new SyntaxToken(start, end - start, text, this->declared[text]);
+            }
             return new SyntaxToken(start, end - start, text, keyword);
         }
 
