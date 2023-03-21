@@ -23,7 +23,7 @@ public:
 };
 
 int main() {
-    ParseTree* ast = new ParseTree()
+    ParseTree* ast = new ParseTree();
 
     return 0;
 }
