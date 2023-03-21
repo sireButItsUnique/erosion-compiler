@@ -4,96 +4,12 @@
 #include <iostream>
 #include <string>
 #include <unordered_map>
+
+#include "tokenCode.cpp"
+#include "syntaxToken.cpp"
+#include "flag.cpp"
+
 using namespace std;
-
-enum TokenCode {
-    op,             //0
-    keyword,        //1
-    type,           //2
-    variable,       //3
-    function,       //4
-    declarator,     //5
-
-    integerLiteral, //6
-    booleanLiteral, //7
-    floatingLiteral,//8
-    stringLiteral,  //9
-
-    curlyBracket,   //10
-    roundBracket,   //11
-    squareBracket,  //12
-
-    ofType,         //13
-    newLine,        //14
-
-    lexicalError,   //15
-};
-
-class SyntaxToken {
-public:
-    int start;
-    int length;
-    string text;
-    TokenCode type;
-
-    SyntaxToken(int start, int len, string text, TokenCode type) {
-        cout << "startPos: " << start << ", Length: " << len << ", Text: " << text << ", of type: " << type << endl;
-        this->start = start;
-        this->length = len;
-        this->type = type;
-        this->text = text;
-        return;
-    }
-};
-
-//flags = what just happened before -> have a sense of what to expect
-class Flag {
-public:
-    bool varDec;
-    bool varColon;
-    bool varType;
-    bool funcDec;
-    bool funcColon;
-    bool funcType;
-
-    Flag() {
-        this->varType = false;
-        this->varDec = false;
-        this->varColon = false;
-        this->funcType = false;
-        this->funcDec = false;
-        this->funcColon = false;
-    }
-
-    void clear() {
-        this->varType = false;
-        this->varDec = false;
-        this->varColon = false;
-        this->funcType = false;
-        this->funcDec = false;
-        this->funcColon = false;
-    }
-
-    void funcWasColoned() {
-        this->funcDec = false;
-        this->funcColon = true;
-    }
-
-    void funcWasTyped() {
-        this->funcColon = false;
-        this->funcType = true;
-    } 
-
-    void varWasColoned() {
-        this->varDec = false;
-        this->varColon = true;
-    }
-
-    void varWasTyped() {
-        this->varColon = false;
-        this->varType = true;
-    }
-};
 
 class Lexer {
 public:
