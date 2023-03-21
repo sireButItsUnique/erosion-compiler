@@ -7,23 +7,26 @@
 using namespace std;
 
 enum TokenCode {
-    op,
-    keyword,
-    type,
-    variable,
-    function,
-    declarator,
+    op,             //0
+    keyword,        //1
+    type,           //2
+    variable,       //3
+    function,       //4
+    declarator,     //5
 
-    integerLiteral,
-    booleanLiteral,
-    floatingLiteral,
-    stringLiteral,
+    integerLiteral, //6
+    booleanLiteral, //7
+    floatingLiteral,//8
+    stringLiteral,  //9
 
-    bracket,
-    ofType,
-    newLine,
+    curlyBracket,   //10
+    roundBracket,   //11
+    squareBracket,  //12
 
-    lexicalError,
+    ofType,         //13
+    newLine,        //14
+
+    lexicalError,   //15
 };
 
 class SyntaxToken {
@@ -220,9 +223,19 @@ public:
         //special character
         else {
             //brackets
-            if (source[pos] == '{' || source[pos] == '}' || source[pos] == '[' || source[pos] == ']' || source[pos] == '(' || source[pos] == ')') {
+            if (source[pos] == '{' || source[pos] == '}') {
                 pos++;
-                return new SyntaxToken(pos - 1, 1, string{source[pos - 1]}, bracket);
+                return new SyntaxToken(pos - 1, 1, string{source[pos - 1]}, roundBracket);
+            }
+            
+            else if (source[pos] == '[' || source[pos] == ']') {
+                pos++;
+                return new SyntaxToken(pos - 1, 1, string{source[pos - 1]}, roundBracket);
+            }
+            
+            else if (source[pos] == '(' || source[pos] == ')') {
+                pos++;
+                return new SyntaxToken(pos - 1, 1, string{source[pos - 1]}, roundBracket);
             } 
             
             //semicolon

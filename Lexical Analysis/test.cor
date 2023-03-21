@@ -1,9 +1,3 @@
-import vector from "vector"
-
-class Test {
-
-};
-
 func:int main() {
     for (var:int i = 0, i < 69, i++) {
         if (i == 2) {
