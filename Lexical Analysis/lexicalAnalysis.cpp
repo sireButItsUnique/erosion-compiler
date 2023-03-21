@@ -155,7 +155,7 @@ public:
             //comma
             else if (source[pos] == ',') {
                 pos++;
-                return new SyntaxToken(pos - 1, 1, ",", seperator);
+                return new SyntaxToken(pos - 1, 1, ",", separator);
             }
             
             //semicolon

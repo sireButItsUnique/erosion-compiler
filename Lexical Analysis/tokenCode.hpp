@@ -18,7 +18,7 @@ enum TokenCode {
     squareBracket,  //12
 
     ofType,         //13
-    seperator,      //14
+    separator,      //14
     newLine,        //15
 
     lexicalError,   //16
