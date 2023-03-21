@@ -46,26 +46,49 @@ public:
 //flags = what just happened before -> have a sense of what to expect
 class Flag {
 public:
-    bool varType;
     bool varDec;
-    bool funcType;
+    bool varColon;
+    bool varType;
     bool funcDec;
+    bool funcColon;
+    bool funcType;
 
     Flag() {
         this->varType = false;
         this->varDec = false;
+        this->varColon = false;
         this->funcType = false;
         this->funcDec = false;
+        this->funcColon = false;
+    }
+
+    void clear() {
+        this->varType = false;
+        this->varDec = false;
+        this->varColon = false;
+        this->funcType = false;
+        this->funcDec = false;
+        this->funcColon = false;
+    }
+
+    void funcWasColoned() {
+        this->funcDec = false;
+        this->funcColon = true;
     }
 
     void funcWasTyped() {
-        this->funcDec = false;
+        this->funcColon = false;
         this->funcType = true;
     } 
 
-    void varWasTyped() {
+    void varWasColoned() {
         this->varDec = false;
-        this->varDec = true;
+        this->varColon = true;
+    }
+
+    void varWasTyped() {
+        this->varColon = false;
+        this->varType = true;
     }
 };
 
@@ -114,7 +137,7 @@ public:
             if (source[pos] != ':') {
                 return new SyntaxToken(pos, pos, "\":\" expected after declaring", lexicalError);
             } else {
-                this->flags.funcDec ? this->flags.funcWasTyped() : this->flags.varWasTyped();
+                this->flags.funcDec ? this->flags.funcWasColoned() : this->flags.varWasColoned();
                 pos++;
                 return new SyntaxToken(pos - 1, pos - 1, ":", ofType);
             }
@@ -156,39 +179,39 @@ public:
             string text = source.substr(start, end - start);
 
             //check here which one it is
-            if (text == "func") {
-                this->flag = "func";
+            if (text == "func") { //declare func
+                this->flags.funcDec = true;
                 return new SyntaxToken(start, end - start, text, declarator);
             }
 
-            if (text == "var") {
-                this->flag = "var";
+            if (text == "var") { //declare var
+                this->flags.varDec = true;
                 return new SyntaxToken(start, end - start, text, declarator);
             }
 
-            if (this->flag == "funcType") {
-                this->flag = "funcName";
+            if (this->flags.funcColon) { //declare type
+                this->flags.funcWasTyped();
                 return new SyntaxToken(start, end - start, text, type);
             }
 
-            if (this->flag == "funcName") {
-                this->flag = "";
+            if (this->flags.funcType) { //declare name
+                this->flags.clear();
                 this->declared[text] = function;
                 return new SyntaxToken(start, end - start, text, function);
             }
 
-            if (this->flag == "varType") {
-                this->flag = "varName";
+            if (this->flags.varColon) { //declare type
+                this->flags.varWasTyped();
                 return new SyntaxToken(start, end - start, text, type);
             }
 
-            if (this->flag == "varName") {
-                this->flag = "";
+            if (this->flags.varType) { //declare name
+                this->flags.clear();
                 this->declared[text] = variable;
                 return new SyntaxToken(start, end - start, text, variable);
             }
 
-            if (this->declared.find(text) != this->declared.end()) {
+            if (this->declared.find(text) != this->declared.end()) { //already declared var/func
                 return new SyntaxToken(start, end - start, text, this->declared[text]);
             }
             return new SyntaxToken(start, end - start, text, keyword);
@@ -209,6 +232,12 @@ public:
             } 
 
             else if (source[pos] == ':') {
+                if (this->flags.funcDec || this->flags.funcType) {
+                    this->flags.funcWasColoned();    
+                } else if (this->flags.varDec || this->flags.varType) {
+                    this->flags.varWasColoned();
+                }
+
                 this->pos++;
                 return new SyntaxToken(pos - 1, 1, ":", ofType);
             }
