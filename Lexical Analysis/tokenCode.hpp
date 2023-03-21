@@ -1,3 +1,5 @@
+#pragma once
+
 enum TokenCode {
     op,             //0
     keyword,        //1
@@ -16,7 +18,8 @@ enum TokenCode {
     squareBracket,  //12
 
     ofType,         //13
-    newLine,        //14
+    seperator,      //14
+    newLine,        //15
 
-    lexicalError,   //15
+    lexicalError,   //16
 };

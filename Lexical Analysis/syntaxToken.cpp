@@ -1,6 +1,6 @@
 #include <string>
 #include <iostream>
-#include "tokenCode.cpp"
+#include "tokenCode.hpp"
 
 using namespace std;
 

@@ -1,11 +1,9 @@
 //remember to add flags after colon and "var" or "func"
-
 #include <fstream>
-#include <iostream>
 #include <string>
 #include <unordered_map>
 
-#include "tokenCode.cpp"
+#include "tokenCode.hpp"
 #include "syntaxToken.cpp"
 #include "flag.cpp"
 
@@ -141,18 +139,24 @@ public:
             //brackets
             if (source[pos] == '{' || source[pos] == '}') {
                 pos++;
-                return new SyntaxToken(pos - 1, 1, string{source[pos - 1]}, roundBracket);
+                return new SyntaxToken(pos - 1, 1, string{source[pos - 1]}, curlyBracket);
             }
             
             else if (source[pos] == '[' || source[pos] == ']') {
                 pos++;
-                return new SyntaxToken(pos - 1, 1, string{source[pos - 1]}, roundBracket);
+                return new SyntaxToken(pos - 1, 1, string{source[pos - 1]}, squareBracket);
             }
             
             else if (source[pos] == '(' || source[pos] == ')') {
                 pos++;
                 return new SyntaxToken(pos - 1, 1, string{source[pos - 1]}, roundBracket);
             } 
+
+            //comma
+            else if (source[pos] == ',') {
+                pos++;
+                return new SyntaxToken(pos - 1, 1, ",", seperator);
+            }
             
             //semicolon
             else if (source[pos] == ';') {
@@ -192,11 +196,3 @@ public:
         }
     }
 };
-//
-int main() {
-    Lexer* lexer = new Lexer("test.cor");
-    while (lexer->nextToken()) {
-
-    }
-    return 0;
-}
