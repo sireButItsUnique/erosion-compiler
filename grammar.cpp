@@ -97,7 +97,6 @@ public:
 func:int main() {
     for (var:int i = 0, i < 69, i++) {
         if (i == 10) {
-            console.print()
             return i;
         }
     }
