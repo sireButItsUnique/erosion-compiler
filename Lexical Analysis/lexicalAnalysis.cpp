@@ -12,6 +12,7 @@ enum TokenCode {
     type,
     variable,
     function,
+    declarator,
 
     integerLiteral,
     booleanLiteral,
@@ -19,7 +20,10 @@ enum TokenCode {
     stringLiteral,
 
     bracket,
+    ofType,
     newLine,
+
+    lexicalError,
 };
 
 class SyntaxToken {
@@ -79,8 +83,19 @@ public:
 
         string& source = this->source;
         
+        //"of type" found
+        if (this->flag == "func" || this->flag == "var") {
+            if (source[pos] != ':') {
+                return new SyntaxToken(pos, pos, "\":\" expected after declaring", lexicalError);
+            } else {
+                this->flag == "func" ? this->flag = "funcType" : this->flag = "varType";
+                pos++;
+                return new SyntaxToken(pos - 1, pos - 1, ":", ofType);
+            }
+        }
+
         //number found
-        if (isdigit(source[pos])) {
+        else if (isdigit(source[pos])) {
             int start = pos;
             while (isdigit(source[pos])) {
                 pos++;
@@ -115,6 +130,16 @@ public:
             string text = source.substr(start, end - start);
 
             //check here which one it is
+            if (text == "func") {
+                this->flag = "func";
+                return new SyntaxToken(start, end - start, text, declarator);
+            }
+
+            if (text == "var") {
+                this->flag = "var";
+                return new SyntaxToken(start, end - start, text, declarator);
+            }
+
             if (this->flag == "funcType") {
                 this->flag = "funcName";
                 return new SyntaxToken(start, end - start, text, type);
