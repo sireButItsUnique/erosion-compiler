@@ -43,18 +43,44 @@ public:
     }
 };
 
+//flags = what just happened before -> have a sense of what to expect
+class Flag {
+public:
+    bool varType;
+    bool varDec;
+    bool funcType;
+    bool funcDec;
+
+    Flag() {
+        this->varType = false;
+        this->varDec = false;
+        this->funcType = false;
+        this->funcDec = false;
+    }
+
+    void funcWasTyped() {
+        this->funcDec = false;
+        this->funcType = true;
+    } 
+
+    void varWasTyped() {
+        this->varDec = false;
+        this->varDec = true;
+    }
+};
+
 class Lexer {
 public:
     fstream sourceFile;
     string source;
-    string flag;
+    Flag flags;
     unordered_map<string, TokenCode> declared; 
     int pos;
     
     Lexer(string source) {
         this->pos = 0;
         this->source = "";
-        this->flag = "";
+        this->flags = Flag();
 
         this->sourceFile.open(source);
         string buffer;
@@ -84,11 +110,11 @@ public:
         string& source = this->source;
         
         //"of type" found
-        if (this->flag == "func" || this->flag == "var") {
+        if (this->flags.funcDec || this->flags.varDec) {
             if (source[pos] != ':') {
                 return new SyntaxToken(pos, pos, "\":\" expected after declaring", lexicalError);
             } else {
-                this->flag == "func" ? this->flag = "funcType" : this->flag = "varType";
+                this->flags.funcDec ? this->flags.funcWasTyped() : this->flags.varWasTyped();
                 pos++;
                 return new SyntaxToken(pos - 1, pos - 1, ":", ofType);
             }
@@ -181,6 +207,11 @@ public:
                 this->pos++;
                 return new SyntaxToken(pos - 1, 1, ";", newLine);
             } 
+
+            else if (source[pos] == ':') {
+                this->pos++;
+                return new SyntaxToken(pos - 1, 1, ":", ofType);
+            }
             
             //operator
             else {
