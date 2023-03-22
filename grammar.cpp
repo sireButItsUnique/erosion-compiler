@@ -107,6 +107,7 @@ public:
                 "<type>:<type>"
             }
         },
+        {"newLine", {"TERMINAL_OP"}}, // semicolon
         {"function", {"TERMINAL_OP"}},
         {"keyword", {"TERMINAL_OP"}},
         {"op", {"TERMINAL_OP"}},

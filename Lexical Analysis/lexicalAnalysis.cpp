@@ -10,13 +10,14 @@
 using namespace std;
 
 class Lexer {
-public:
+private:
     fstream sourceFile;
     string source;
     Flag flags;
     unordered_map<string, TokenCode> declared; 
     int pos;
     
+public:
     Lexer(string source) {
         this->pos = 0;
         this->source = "";
