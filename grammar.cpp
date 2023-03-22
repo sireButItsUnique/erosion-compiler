@@ -6,7 +6,7 @@ using namespace std;
 class Grammar {
 public:
     unordered_map<string, vector<string>> rules = {
-        {"function",
+        {"func",
             {
                 "func:<type> <function>(<arg>) {<statement>}",
             }
@@ -14,7 +14,42 @@ public:
         {"arg", 
             {
                 "<declaration>",
-                "<declaration>, <arg>",   
+                "<declaration>, <arg>", 
+                ""  
+            }
+        },
+        {"statement",
+            {
+                "<statement> <newLine>",
+                "<declaration>",
+                "<func>,"
+                "<conditional>",
+                "<return>",
+            }
+        },
+
+//         func:int main() {
+        //     for (var:int i = 0, i < 69, i++) {
+        //         if (i == 2) {
+        //             console.print("matches!");
+        //         }
+        //     }
+            
+        //     return 0;
+        // }
+
+        {"conditional", 
+            {
+                "<while>",
+                "<for>",
+                "<if>"
+            }
+        },
+        {"return", 
+            {
+                "return <literal>",
+                "return <variable>"
+                "return <function>(<args>)"
             }
         },
         {"declaration",
@@ -72,6 +107,7 @@ public:
                 "<type>:<type>"
             }
         },
+        {"function", {"TERMINAL_OP"}},
         {"keyword", {"TERMINAL_OP"}},
         {"op", {"TERMINAL_OP"}},
         {"booleanLiteral", {"TERMINAL_OP"}},
@@ -88,7 +124,8 @@ public:
         return false;
     }
 
-    bool isTerminator() {
+    bool isTerminator(string type) {
+        
         return false; // unless vector size is 1 and vector[0] == terminator
     }
 };
