@@ -119,13 +119,16 @@ private:
         if (this->children.empty() || this->children[this->children.size() - 1]->complete) {
             //add new child
             for (auto ruleVariation : this->rules->rules[this->root->type]) { //iterate thru all possible rule syntaxes
+                cout << "cockandballtorture\n";
                 
                 //if <expression> {<statement>}
                 if (ruleVariation.size() >= this->children.size()) {
+                    cout << "reached\n";
                     string currTerm = ruleVariation[this->children.size()];
                     
                     if (currTerm[0] == '<') {
                         currTerm = currTerm.substr(1, currTerm.back() - 1);
+                        cout << currTerm << '\n';
                         vector<int> path;
                         
                         if (this->breakDown(currTerm, token, path)) {
@@ -143,7 +146,7 @@ private:
 public:
     ParseTree(Lexer* lexer) {
         this->lexer = lexer;
-        this->root = new ParseNode("<program>");
+        this->root = new ParseNode("program");
         this->rules = new Grammar();
 
         return;

@@ -6,6 +6,11 @@ using namespace std;
 class Grammar {
 public:
     unordered_map<string, vector<vector<string>>> rules = {
+        {"program",
+            {
+                {"<if>"}
+            }
+        },
         {"func",
             {
                 {"func", ":", "<type>", "<function>", "(", "<arg>", ")", "{", "<statement>", "}"},
