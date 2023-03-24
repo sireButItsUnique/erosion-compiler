@@ -114,8 +114,8 @@ public:
 
             if (this->flags.funcType) { //declare name
                 this->flags.clear();
-                this->declared[text] = function;
-                return new SyntaxToken(start, end - start, text, function);
+                this->declared[text] = TokenCode::function;
+                return new SyntaxToken(start, end - start, text, TokenCode::function);
             }
 
             if (this->flags.varColon) { //declare type

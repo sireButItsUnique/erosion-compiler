@@ -1,25 +1,23 @@
-// AKA parser
-
 // change this later to make code more optimized
 #include <bits/stdc++.h>
-#include "../grammar.cpp"
+#include "grammar.cpp"
 #include "../Lexical Analysis/lexicalAnalysis.cpp"
 using namespace std;
 
 class ParseNode {
 public:
     // name & value of node (according to grammar)
-    string name, val;
+    string type, val;
 
-    ParseNode(string name, string val) {
-        this->name = name;
+    ParseNode(string type, string val) {
+        this->type = type;
         this->val = val;
-        
+
         return;
     }
 
-    ParseNode(string name) {
-        this->name = name;
+    ParseNode(string type) {
+        this->type = type;
         
         return;
     }
@@ -33,7 +31,7 @@ private:
     Grammar* rules;
     bool complete = false;
 
-    // add a vector of children to current root node
+    // adding children
     void addChildren(vector<string>& children) {
         for (auto child : children) {
             this->children.push_back(new ParseTree(child, rules));
@@ -42,7 +40,6 @@ private:
         return;
     }
 
-    // add a child to current root node
     void addChild(string child) {
         this->children.push_back(new ParseTree(child, rules));
 
@@ -52,16 +49,23 @@ private:
     // go down the tree + add nodes to tree recursively
     // return after reaching terminal operator
     // return syntax error if missing a token (e.g. a bracket)
-    void matchToken(SyntaxToken* token, string currNodeType, ParseTree* level) {
-        if (rules->isTerminator(currNodeType)) {
-            this->addChild(token->text);
+    void matchToken(SyntaxToken* token) {
+        
+        if (this->children[this->children.size() - 1]->complete) {
+            //add new child
+            for (auto rule : this->rules->rules[this->root->type]) { //iterate thru all possible rule syntaxes
 
-            return;
+            //if <expression> {<statement>}
+                if (rule.size() >= this->children.size()) {
+                    if (rule[this->children.size()][0] == '<') {
+
+                    }
+                }
+            }
+            
+        } else {
+            this->children[this->children.size() - 1]->matchToken(token);
         }
-
-
-
-        matchToken();
     }
 
 public:
@@ -84,7 +88,7 @@ public:
         SyntaxToken* next = lexer->nextToken();
 
         while (next) {
-            matchToken(next);
+            this->matchToken(next);
 
             if (next->type == keyword) {
                 string text = next->text;
@@ -100,7 +104,7 @@ public:
         for (int i = 0; i < depth; i++) {
             cout << "  ";
         }
-        cout << this->root->name << '\n';
+        cout << this->root->type << '\n';
         for (auto& c: this->children) {
             c->print(depth + 1);
         }
