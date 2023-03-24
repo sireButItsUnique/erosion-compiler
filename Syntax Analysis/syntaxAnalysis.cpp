@@ -49,15 +49,17 @@ private:
     // go down the tree + add nodes to tree recursively
     // return after reaching terminal operator
     // return syntax error if missing a token (e.g. a bracket)
-    bool breakDown(string rule, SyntaxToken* token) {
+    bool breakDown(string rule, SyntaxToken* token, vector<int>& path) {
+        bool found = false;
         
-
-        for (auto ruleVariation : this->rules->rules[rule]) { //iterate thru all possible rule syntaxes
+        for (int i = 0; i < this->rules->rules[rule].size() - 1; i++) { //iterate thru all possible rule syntaxes
+            vector<string> ruleVariation =  this->rules->rules[rule][i];
             string currTerm = ruleVariation[0];
             
-            //testing if currTerm is a terminal operator
+            //testing if currTerm is a terminal operator (leaf node)
             if (currTerm == "TERMINAL_OP") {
-                if (rule == token->tokenCodeStringify()) { //figure out how to turn enum into what its acty called in string form
+                if (rule == token->tokenCodeStringify()) {
+                    path.push_back(i);
                     return true;
                 } 
                 
@@ -66,18 +68,37 @@ private:
 
             //testing if can break down more
             else if (currTerm[0] == '<') {
-                return this->breakDown(currTerm.substr(1, currTerm.back() - 1), token);
+                found = this->breakDown(currTerm.substr(1, currTerm.back() - 1), token, path);
+                
+                if (found) {
+                    path.push_back(i);
+                    return found;
+                } 
             } 
             
-            //have reached constant term
+            //have reached constant term (leaf node)
             else {
                 if (token->text == currTerm) {
+                    path.push_back(i);
                     return true;
                 }
 
                 return false;
             }
         }
+
+        return found;
+    }
+
+    void buildUp(string rule, SyntaxToken* token, vector<int>& path, int i) {
+        string rawCurrTerm = this->rules->rules[rule][path[i]][0];
+        string currTerm = rawCurrTerm.substr(1, rawCurrTerm.back() - 1); // slice off first and last index
+        
+        ParseNode* newChild = new ParseNode(currTerm);
+        this->children.push_back(new ParseTree(newChild, this->rules));
+
+        i++;
+        this->children.back()->buildUp(currTerm, token, path, i + 1);
     }
     
     void matchToken(SyntaxToken* token) {
@@ -90,7 +111,14 @@ private:
                     string currTerm = ruleVariation[this->children.size()];
                     
                     if (currTerm[0] == '<') {
-                        this->breakDown(currTerm.substr(1, currTerm.back() - 1), token);
+                        currTerm = currTerm.substr(1, currTerm.back() - 1);
+                        vector<int> path;
+                        
+                        if (this->breakDown(currTerm, token, path)) {
+                            reverse(path.begin(), path.end());
+
+                            buildUp(this->root->type, token, path, 0);
+                        }
                     }
                 }
             }
@@ -107,6 +135,11 @@ public:
         this->rules = new Grammar();
 
         return;
+    }
+
+    ParseTree(ParseNode* node, Grammar* grammar) {
+        this->root = node;
+        this->rules = grammar;
     }
 
     ParseTree(string root, Grammar* grammar) {
