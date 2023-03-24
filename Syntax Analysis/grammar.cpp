@@ -109,13 +109,4 @@ public:
     Grammar() {
         return;
     }
-
-    bool match() {
-        return false;
-    }
-
-    bool isTerminator(string type) {
-        
-        return false; // unless vector size is 1 and vector[0] == terminator
-    }
 };
