@@ -50,12 +50,14 @@ private:
     // return after reaching terminal operator
     // return syntax error if missing a token (e.g. a bracket)
     bool breakDown(string rule, SyntaxToken* token) {
+        
+
         for (auto ruleVariation : this->rules->rules[rule]) { //iterate thru all possible rule syntaxes
             string currTerm = ruleVariation[0];
             
             //testing if currTerm is a terminal operator
             if (currTerm == "TERMINAL_OP") {
-                if (rule == token->type) { //figure out how to turn enum into what its acty called in string form
+                if (rule == token->tokenCodeStringify()) { //figure out how to turn enum into what its acty called in string form
                     return true;
                 } 
                 

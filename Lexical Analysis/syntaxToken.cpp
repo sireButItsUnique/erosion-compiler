@@ -19,4 +19,28 @@ public:
         this->text = text;
         return;
     }
+
+    string tokenCodeStringify() {
+        vector<string> tokenCodeStringify = {
+            "op",
+            "keyword",
+            "type",
+            "variable",
+            "function",
+            "declarator",
+            "integerLiteral",
+            "booleanLiteral",             
+            "floatingLiteral",            
+            "stringLiteral",  
+            "curlyBracket",   
+            "roundBracket",   
+            "squareBracket",  
+            "ofType",         
+            "separator",      
+            "newLine",        
+            "lexicalError",   
+        };
+        
+        return tokenCodeStringify[this->type];
+    }
 };
