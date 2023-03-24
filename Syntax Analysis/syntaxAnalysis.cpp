@@ -2,6 +2,7 @@
 
 // change this later to make code more optimized
 #include <bits/stdc++.h>
+#include "../grammar.cpp"
 #include "../Lexical Analysis/lexicalAnalysis.cpp"
 using namespace std;
 
@@ -29,11 +30,13 @@ private:
     ParseNode* root; // root of current parse tree
     vector<ParseTree*> children; // children of the root node of the current parse tree
     Lexer* lexer;
+    Grammar* rules;
+    bool complete = false;
 
     // add a vector of children to current root node
     void addChildren(vector<string>& children) {
         for (auto child : children) {
-            this->children.push_back(new ParseTree(child));
+            this->children.push_back(new ParseTree(child, rules));
         }
 
         return;
@@ -41,26 +44,55 @@ private:
 
     // add a child to current root node
     void addChild(string child) {
-        this->children.push_back(new ParseTree(child));
-    
+        this->children.push_back(new ParseTree(child, rules));
+
         return;
     }
     
+    // go down the tree + add nodes to tree recursively
+    // return after reaching terminal operator
+    // return syntax error if missing a token (e.g. a bracket)
+    void matchToken(SyntaxToken* token, string currNodeType, ParseTree* level) {
+        if (rules->isTerminator(currNodeType)) {
+            this->addChild(token->text);
+
+            return;
+        }
+
+
+
+        matchToken();
+    }
+
 public:
     ParseTree(Lexer* lexer) {
         this->lexer = lexer;
+        this->root = new ParseNode("<program>");
+        this->rules = new Grammar();
 
         return;
     }
 
-    ParseTree(string root) {
+    ParseTree(string root, Grammar* grammar) {
         this->root = new ParseNode(root);
+        this->rules = grammar;
 
         return;
     }
 
     void build() {
-        
+        SyntaxToken* next = lexer->nextToken();
+
+        while (next) {
+            matchToken(next);
+
+            if (next->type == keyword) {
+                string text = next->text;
+
+            }
+            
+            next = lexer->nextToken();
+        }
     }
 
     // for testing (remove in prod)
