@@ -97,12 +97,26 @@ private:
         ParseNode* newChild = new ParseNode(currTerm);
         this->children.push_back(new ParseTree(newChild, this->rules));
 
-        i++;
+        i--;
+        if (!i) {
+            //reached leaf node
+            newChild = new ParseNode(token->tokenCodeStringify(), token->text);
+            this->children.back()->children.push_back(new ParseTree(newChild, this->rules));
+            this->children.back()->children.back()->complete = true;
+            return;
+        }
+        
         this->children.back()->buildUp(currTerm, token, path, i + 1);
+
+        //we know its complete when it has equal num of children as num of terms in the rule variation
+        if (this->children.size() == this->rules->rules[rule][path[i]].size()) {
+            this->complete = true;
+        }
+        return;
     }
-    
+
     void matchToken(SyntaxToken* token) {
-        if (this->children[this->children.size() - 1]->complete) {
+        if (this->children.empty() || this->children[this->children.size() - 1]->complete) {
             //add new child
             for (auto ruleVariation : this->rules->rules[this->root->type]) { //iterate thru all possible rule syntaxes
                 
@@ -115,14 +129,12 @@ private:
                         vector<int> path;
                         
                         if (this->breakDown(currTerm, token, path)) {
-                            reverse(path.begin(), path.end());
-
-                            buildUp(this->root->type, token, path, 0);
+                            cout << "true\n";
+                            this->buildUp(this->root->type, token, path, path.size() - 1);
                         }
                     }
                 }
             }
-            
         } else {
             this->children[this->children.size() - 1]->matchToken(token);
         }
@@ -154,11 +166,6 @@ public:
 
         while (next) {
             this->matchToken(next);
-
-            if (next->type == keyword) {
-                string text = next->text;
-
-            }
             
             next = lexer->nextToken();
         }
