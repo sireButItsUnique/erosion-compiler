@@ -103,10 +103,11 @@ class ParseTree {
         //adding child
         ParseNode* newChild = new ParseNode(currTerm);
         this->children.push_back(new ParseTree(newChild, this->rules));
-        
+
         // we know its complete when it has equal num of children as num of
         // terms in the rule variation
-        if (this->children.size() == this->rules->rules[rule][path[i]].size()) {
+        cout << this->children.size()  << " children out of " << this->rules->rules[rule][path[i]].size() << endl;
+        if (this->children.size() >= this->rules->rules[rule][path[i]].size()) {
             this->complete = true;
         }
 
@@ -118,8 +119,18 @@ class ParseTree {
 
             this->children.back()->children.push_back(new ParseTree(newChild, this->rules));
             this->children.back()->children.back()->complete = true;
+
+            // we know its complete when it (last children) has equal num of children as num of
+            // terms in the rule variation (0 of rule of last child)
+            int totalTerms = this->rules->rules[this->children.back()->root->type][0].size();
+            cout << this->children.back()->children.size() << " children out of " << totalTerms << endl;
+            if (this->children.back()->children.size() >= totalTerms) {
+                this->children.back()->complete = true;
+            }
             return;
         }
+
+
 
         //calling from new child
         currTerm = this->rules->rules[rule][path[i]][0];
