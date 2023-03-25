@@ -56,18 +56,17 @@ class ParseTree {
         bool found = false;
 
         for (int i = 0; i < this->rules->rules[rule].size(); i++) {  // iterate thru all possible rule syntaxes
-            cout << "found variation: " << i << endl;
             
             vector<string> ruleVariation = this->rules->rules[rule][i];
             string currTerm = ruleVariation[0];
+            cout << "found variation: " << i << " with first term " << currTerm << endl;
 
             // testing if currTerm is a terminal operator (leaf node)
             if (currTerm == "TERMINAL_OP") {
-                // if (rule == token->tokenCodeStringify()) {
+                if (rule == "<" + token->tokenCodeStringify() + ">") {
                     path.push_back(i);
-
                     return true;
-                // }
+                }
 
                 return false;
             }
@@ -160,7 +159,7 @@ class ParseTree {
                     } else {
                         if (token->text == currTerm || currTerm == "TERMINAL_OP") {
                             this->children.push_back(new ParseTree(new ParseNode(token->tokenCodeStringify(), token->text), this->rules));
-                        
+                            this->children.back()->complete = true;
                             break;
                         }
                     }
@@ -211,6 +210,11 @@ class ParseTree {
         if (this->root->val != "") {
             cout << ": " << this->root->val;
         }
+
+        if (this->complete) {
+            cout << " (complete)";
+        }
+
         cout << endl;
         for (auto& c : this->children) {
             c->print(depth + 1);
