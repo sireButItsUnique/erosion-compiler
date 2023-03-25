@@ -107,7 +107,7 @@ class ParseTree {
         // we know its complete when it has equal num of children as num of
         // terms in the rule variation
         cout << this->children.size()  << " children out of " << this->rules->rules[rule][path[i]].size() << endl;
-        if (this->children.size() >= this->rules->rules[rule][path[i]].size()) {
+        if (this->children.size() >= this->rules->rules[rule][path[i]].size() && this->root->type != "<program>") {
             this->complete = true;
         }
 
@@ -130,8 +130,6 @@ class ParseTree {
             return;
         }
 
-
-
         //calling from new child
         currTerm = this->rules->rules[rule][path[i]][0];
         this->children.back()->buildUp(currTerm, token, path, i);
@@ -145,8 +143,38 @@ class ParseTree {
             // looping thru rule variations
             for (auto ruleVariation : this->rules->rules[this->root->type]) {  
                 
+                if (this->root->type == "<program>") {
+                    string currTerm = ruleVariation[0];
+                    
+                    if (currTerm[0] == '<') {
+                        cout << currTerm << " can be broken" << '\n';
+
+                        vector<int> path;
+
+                        if (this->breakDown(currTerm, token, path)) {
+                            cout << "path: ";
+                            for (auto p : path) {
+                                cout << p << ", ";
+                            }
+                            cout << '\n';
+
+                            cout << "starting build of size: " << path.size() << endl;
+                            cout << "token: " << token->text << '\n';
+                            this->buildUp(currTerm, token, path, path.size() - 1);
+
+                            break;
+                        }
+                    } else {
+                        if (token->text == currTerm || currTerm == "TERMINAL_OP") {
+                            this->children.push_back(new ParseTree(new ParseNode(token->tokenCodeStringify(), token->text), this->rules));
+                            this->children.back()->complete = true;
+                            break;
+                        }
+                    }
+                }
+
                 // checking if there are enough terms left in this specific rule variation
-                if (ruleVariation.size() > this->children.size()) {
+                else if (ruleVariation.size() > this->children.size()) {
                     string currTerm = ruleVariation[this->children.size()];
                     
                     if (currTerm[0] == '<') {

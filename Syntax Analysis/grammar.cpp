@@ -9,7 +9,7 @@ public:
         {"<program>",
             {
                 {"<if>"},
-                {"<declaration>", "<newLine>"}
+                {"<declaration>"}
             }
         },
         {"<func>",
@@ -20,7 +20,7 @@ public:
         {"<arg>", 
             {
                 {"<declaration>"},
-                {"<declaration>", "<arg>"}, 
+                {"<declaration>", ", ", "<arg>"}, 
                 {""}  
             }
         },
@@ -49,8 +49,8 @@ public:
         },
         {"<declaration>",
             {
-                {"var", ":", "<type>", "<variable>"},
-                {"var", ":", "<type>", "<variable>", "=" ,"<literal>"},
+                {"var", ":", "<type>", "<variable>", "<newLine>"},
+                {"var", ":", "<type>", "<variable>", "=" ,"<literal>", "<newLine>"},
             }
         },
         {"<if>", 
