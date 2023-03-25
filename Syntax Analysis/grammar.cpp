@@ -6,24 +6,25 @@ using namespace std;
 class Grammar {
 public:
     unordered_map<string, vector<vector<string>>> rules = {
-        {"program",
+        {"<program>",
             {
-                {"<if>"}
+                {"<if>"},
+                {"<declaration>", "<newLine>"}
             }
         },
-        {"func",
+        {"<func>",
             {
                 {"func", ":", "<type>", "<function>", "(", "<arg>", ")", "{", "<statement>", "}"},
             }
         },
-        {"arg", 
+        {"<arg>", 
             {
                 {"<declaration>"},
                 {"<declaration>", "<arg>"}, 
                 {""}  
             }
         },
-        {"statement",
+        {"<statement>",
             {
                 {"<statement>", "<newLine>"},
                 {"<declaration>"},
@@ -32,44 +33,44 @@ public:
                 {"<return>"},
             }
         },
-        {"conditional", 
+        {"<conditional>", 
             {
                 {"<while>"},
                 {"<for>"},
                 {"<if>"},
             }
         },
-        {"return", 
+        {"<return>", 
             {
                 {"return", "<literal>"},
                 {"return", "<variable>"},
                 {"return", "<function>(<args>)"}
             }
         },
-        {"declaration",
+        {"<declaration>",
             {
                 {"var", ":", "<type>", "<variable>"},
                 {"var", ":", "<type>", "<variable>", "=" ,"<literal>"},
             }
         },
-        {"if", 
+        {"<if>", 
             {
                 {"if", "<expression>", "{", "<statement>", "}"}
             }
         },
-        {"while", 
+        {"<while>", 
             {
                 {"while", "<expression>", "{", "<statement>", "}"},
             }
         },
-        {"for", 
+        {"<for>", 
             {
                 {"for", "(", "<declaration>", "<expression>", "<statement>", ")" "{", "<statement>", "}"}, 
                 {"for", "(", "<declaration>", "in", "<variable>", ")" "{", "<statement>", "}"}, //"in" var must be array
                 {"for", "(", "<declaration>", "<declaration>", "in", "<variable>", ")", "{", "<statement>", "}"}
             }
         },
-        {"expression", 
+        {"<expression>", 
             {
                 {"(", "<expression>", ")"}, 
                 {"<variable>", "<op>", "<expression>"},
@@ -83,7 +84,7 @@ public:
                 {"<expression>", "<op>", "<variable>"},
             }
         },
-        {"literal", 
+        {"<literal>", 
             {
                 {"<booleanLiteral>"}, 
                 {"<stringLiteral>"}, 
@@ -91,7 +92,7 @@ public:
                 {"<integerLiteral>"}
             }
         },
-        {"type", 
+        {"<type>", 
             {
                 {"int"}, 
                 {"float"},
@@ -101,14 +102,15 @@ public:
                 {"<type>", ":", "<type>"}
             }
         },
-        {"newLine", {{"TERMINAL_OP"}}}, // semicolon
-        {"function", {{"TERMINAL_OP"}}},
-        {"keyword", {{"TERMINAL_OP"}}},
-        {"op", {{"TERMINAL_OP"}}},
-        {"booleanLiteral", {{"TERMINAL_OP"}}},
-        {"stringLiteral", {{"TERMINAL_OP"}}},
-        {"floatingLiteral", {{"TERMINAL_OP"}}},
-        {"integerLiteral", {{"TERMINAL_OP"}}},
+        {"<newLine>", {{"TERMINAL_OP"}}}, // semicolon
+        {"variable", {{"TERMINAL_OP"}}},
+        {"<function>", {{"TERMINAL_OP"}}},
+        {"<keyword>", {{"TERMINAL_OP"}}},
+        {"<op>", {{"TERMINAL_OP"}}},
+        {"<booleanLiteral>", {{"TERMINAL_OP"}}},
+        {"<stringLiteral>", {{"TERMINAL_OP"}}},
+        {"<floatingLiteral>", {{"TERMINAL_OP"}}},
+        {"<integerLiteral>", {{"TERMINAL_OP"}}},
     };
     
     Grammar() {

@@ -1,11 +1,12 @@
 // change this later to make code more optimized
 #include <bits/stdc++.h>
-#include "grammar.cpp"
+
 #include "../Lexical Analysis/lexicalAnalysis.cpp"
+#include "grammar.cpp"
 using namespace std;
 
 class ParseNode {
-public:
+   public:
     // name & value of node (according to grammar)
     string type, val;
 
@@ -18,15 +19,16 @@ public:
 
     ParseNode(string type) {
         this->type = type;
-        
+        this->val = "";
+
         return;
     }
 };
 
 class ParseTree {
-private:
-    ParseNode* root; // root of current parse tree
-    vector<ParseTree*> children; // children of the root node of the current parse tree
+   private:
+    ParseNode* root;  // root of current parse tree
+    vector<ParseTree*> children;  // children of the root node of the current parse tree
     Lexer* lexer;
     Grammar* rules;
     bool complete = false;
@@ -45,39 +47,44 @@ private:
 
         return;
     }
-    
+
     // go down the tree + add nodes to tree recursively
     // return after reaching terminal operator
     // return syntax error if missing a token (e.g. a bracket)
     bool breakDown(string rule, SyntaxToken* token, vector<int>& path) {
+        cout << "called on rule: " << rule << endl;
         bool found = false;
-        
-        for (int i = 0; i < this->rules->rules[rule].size() - 1; i++) { //iterate thru all possible rule syntaxes
-            vector<string> ruleVariation =  this->rules->rules[rule][i];
-            string currTerm = ruleVariation[0];
+
+        for (int i = 0; i < this->rules->rules[rule].size(); i++) {  // iterate thru all possible rule syntaxes
+            cout << "found variation: " << i << endl;
             
-            //testing if currTerm is a terminal operator (leaf node)
+            vector<string> ruleVariation = this->rules->rules[rule][i];
+            string currTerm = ruleVariation[0];
+
+            // testing if currTerm is a terminal operator (leaf node)
             if (currTerm == "TERMINAL_OP") {
                 if (rule == token->tokenCodeStringify()) {
                     path.push_back(i);
+
                     return true;
-                } 
-                
+                }
+
                 return false;
             }
 
-            //testing if can break down more
+            // testing if can break down more
             else if (currTerm[0] == '<') {
-                found = this->breakDown(currTerm.substr(1, currTerm.back() - 1), token, path);
-                
+                found = this->breakDown(currTerm, token, path);
+
                 if (found) {
                     path.push_back(i);
                     return found;
-                } 
-            } 
-            
-            //have reached constant term (leaf node)
+                }
+            }
+
+            // have reached constant term (leaf node)
             else {
+                cout << "reached constant: " << currTerm << endl;
                 if (token->text == currTerm) {
                     path.push_back(i);
                     return true;
@@ -91,49 +98,56 @@ private:
     }
 
     void buildUp(string rule, SyntaxToken* token, vector<int>& path, int i) {
-        string rawCurrTerm = this->rules->rules[rule][path[i]][0];
-        string currTerm = rawCurrTerm.substr(1, rawCurrTerm.back() - 1); // slice off first and last index
-        
+        string currTerm = rule;
+
+        //adding child
         ParseNode* newChild = new ParseNode(currTerm);
         this->children.push_back(new ParseTree(newChild, this->rules));
+        
+        // we know its complete when it has equal num of children as num of
+        // terms in the rule variation
+        if (this->children.size() == this->rules->rules[rule][path[i]].size()) {
+            this->complete = true;
+        }
 
         i--;
-        if (!i) {
-            //reached leaf node
+        if (i < 0) {
+            cout << "leaf\n";
+            // reached leaf node
             newChild = new ParseNode(token->tokenCodeStringify(), token->text);
+
             this->children.back()->children.push_back(new ParseTree(newChild, this->rules));
             this->children.back()->children.back()->complete = true;
             return;
         }
-        
-        this->children.back()->buildUp(currTerm, token, path, i + 1);
 
-        //we know its complete when it has equal num of children as num of terms in the rule variation
-        if (this->children.size() == this->rules->rules[rule][path[i]].size()) {
-            this->complete = true;
-        }
+        //calling from new child
+        currTerm = this->rules->rules[rule][path[i]][0];
+        this->children.back()->buildUp(currTerm, token, path, i);
+        
         return;
     }
 
     void matchToken(SyntaxToken* token) {
         if (this->children.empty() || this->children[this->children.size() - 1]->complete) {
-            //add new child
-            for (auto ruleVariation : this->rules->rules[this->root->type]) { //iterate thru all possible rule syntaxes
-                cout << "cockandballtorture\n";
+            
+            // looping thru rule variations
+            for (auto ruleVariation : this->rules->rules[this->root->type]) {  
                 
-                //if <expression> {<statement>}
-                if (ruleVariation.size() >= this->children.size()) {
-                    cout << "reached\n";
+                // checking if there are enough terms left in this specific rule variation
+                if (ruleVariation.size() > this->children.size()) {
                     string currTerm = ruleVariation[this->children.size()];
                     
                     if (currTerm[0] == '<') {
-                        currTerm = currTerm.substr(1, currTerm.back() - 1);
-                        cout << currTerm << '\n';
                         vector<int> path;
-                        
+
                         if (this->breakDown(currTerm, token, path)) {
-                            cout << "true\n";
-                            this->buildUp(this->root->type, token, path, path.size() - 1);
+                            cout << "starting build of size: " << path.size() << endl;
+                            this->buildUp(currTerm, token, path, path.size() - 1);
+                        }
+                    } else {
+                        if (token->text == currTerm) {
+                            this->children.push_back(new ParseTree(new ParseNode(token->tokenCodeStringify(), token->text), this->rules));
                         }
                     }
                 }
@@ -143,10 +157,10 @@ private:
         }
     }
 
-public:
+   public:
     ParseTree(Lexer* lexer) {
         this->lexer = lexer;
-        this->root = new ParseNode("program");
+        this->root = new ParseNode("<program>");
         this->rules = new Grammar();
 
         return;
@@ -169,7 +183,7 @@ public:
 
         while (next) {
             this->matchToken(next);
-            
+
             next = lexer->nextToken();
         }
     }
@@ -179,22 +193,24 @@ public:
         for (int i = 0; i < depth; i++) {
             cout << "  ";
         }
-        cout << this->root->type << '\n';
-        for (auto& c: this->children) {
+        cout << this->root->type;
+        if (this->root->val != "") {
+            cout << ": " << this->root->val;
+        }
+        cout << endl;
+        for (auto& c : this->children) {
             c->print(depth + 1);
         }
 
         return;
     }
-
 };
-
 
 int main() {
     Lexer* lexer = new Lexer("test.cor");
     ParseTree* ast = new ParseTree(lexer);
     ast->build();
     ast->print(0);
-    
+
     return 0;
 }
