@@ -8,8 +8,10 @@ public:
     unordered_map<string, vector<vector<string>>> rules = {
         {"<program>",
             {
-                {"<if>"},
-                {"<declaration>"}
+                {"<declaration>"},
+                {"<return>"},
+                {"<func>"},
+                {"<conditional>"}
             }
         },
         {"<func>",
@@ -26,9 +28,7 @@ public:
         },
         {"<statement>",
             {
-                {"<statement>", "<newLine>"},
                 {"<declaration>"},
-                {"<func>"},
                 {"<conditional>"},
                 {"<return>"},
             }
@@ -42,9 +42,9 @@ public:
         },
         {"<return>", 
             {
-                {"return", "<literal>"},
-                {"return", "<variable>"},
-                {"return", "<function>(<args>)"}
+                {"return", "<literal>", "<newLine>"},
+                {"return", "<variable>", "<newLine>"},
+                {"return", "<function>(<args>)", "<newLine>"}
             }
         },
         {"<declaration>",

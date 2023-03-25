@@ -83,7 +83,6 @@ class ParseTree {
 
             // have reached constant term (leaf node)
             else {
-                cout << "reached constant: " << currTerm << endl;
                 if (token->text == currTerm) {
                     path.push_back(i);
 
@@ -106,14 +105,13 @@ class ParseTree {
 
         // we know its complete when it has equal num of children as num of
         // terms in the rule variation
-        cout << this->children.size()  << " children out of " << this->rules->rules[rule][path[i]].size() << endl;
-        if (this->children.size() >= this->rules->rules[rule][path[i]].size() && this->root->type != "<program>") {
+        cout << this->children.size()  << " children out of " << this->rules->rules[this->root->type][path[i]].size() << " on " << rule << endl;
+        if (this->children.size() >= this->rules->rules[this->root->type][path[i]].size() && this->root->type != "<program>") {
             this->complete = true;
         }
 
         i--;
         if (i < 0) {
-            cout << "leaf\n";
             // reached leaf node
             newChild = new ParseNode(token->tokenCodeStringify(), token->text);
 
@@ -123,7 +121,7 @@ class ParseTree {
             // we know its complete when it (last children) has equal num of children as num of
             // terms in the rule variation (0 of rule of last child)
             int totalTerms = this->rules->rules[this->children.back()->root->type][0].size();
-            cout << this->children.back()->children.size() << " children out of " << totalTerms << endl;
+            cout << this->children.back()->children.size() << " child children out of " << totalTerms << " on " << this->children.back()->root->type << endl;
             if (this->children.back()->children.size() >= totalTerms) {
                 this->children.back()->complete = true;
             }
@@ -147,7 +145,6 @@ class ParseTree {
                     string currTerm = ruleVariation[0];
                     
                     if (currTerm[0] == '<') {
-                        cout << currTerm << " can be broken" << '\n';
 
                         vector<int> path;
 
