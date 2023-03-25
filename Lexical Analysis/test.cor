@@ -1,9 +1,1 @@
-func:int main() {
-    for (var:int i = 0, i < 69, i++) {
-        if (i == 2) {
-            console.print("matches!");
-        }
-    }
-    
-    return 0;
-}
+var:int a = 0;

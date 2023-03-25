@@ -1,5 +1,6 @@
 #include <string>
 #include <iostream>
+#include <vector>
 #include "tokenCode.hpp"
 
 using namespace std;

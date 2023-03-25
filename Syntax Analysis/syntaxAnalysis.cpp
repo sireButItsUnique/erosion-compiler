@@ -145,10 +145,10 @@ class ParseTree {
                         vector<int> path;
 
                         if (this->breakDown(currTerm, token, path)) {
+                            cout << "path: ";
                             for (auto p : path) {
-                                cout << p << '>';
+                                cout << p << ", ";
                             }
-
                             cout << '\n';
 
                             cout << "starting build of size: " << path.size() << endl;
