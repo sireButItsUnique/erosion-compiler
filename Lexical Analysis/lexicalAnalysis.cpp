@@ -57,7 +57,7 @@ public:
             } else {
                 this->flags.funcDec ? this->flags.funcWasColoned() : this->flags.varWasColoned();
                 pos++;
-                return new SyntaxToken(pos - 1, pos - 1, ":", ofType);
+                return new SyntaxToken(pos - 1, 1, ":", ofType);
             }
         }
 

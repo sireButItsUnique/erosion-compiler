@@ -92,18 +92,19 @@ public:
                 {"<integerLiteral>"}
             }
         },
-        {"<type>", 
-            {
-                {"int"}, 
-                {"float"},
-                {"string"},
-                {"char"}, 
-                {"bool"}, 
-                {"<type>", ":", "<type>"}
-            }
-        },
+        {"<type>", {{"TERMINAL_OP"}}},
+        // {"<type>", 
+        //     {
+        //         {"int"}, 
+        //         {"float"},
+        //         {"string"},
+        //         {"char"}, 
+        //         {"bool"}, 
+        //         {"<type>", ":", "<type>"}
+        //     }
+        // },
         {"<newLine>", {{"TERMINAL_OP"}}}, // semicolon
-        {"variable", {{"TERMINAL_OP"}}},
+        {"<variable>", {{"TERMINAL_OP"}}},
         {"<function>", {{"TERMINAL_OP"}}},
         {"<keyword>", {{"TERMINAL_OP"}}},
         {"<op>", {{"TERMINAL_OP"}}},

@@ -63,11 +63,11 @@ class ParseTree {
 
             // testing if currTerm is a terminal operator (leaf node)
             if (currTerm == "TERMINAL_OP") {
-                if (rule == token->tokenCodeStringify()) {
+                // if (rule == token->tokenCodeStringify()) {
                     path.push_back(i);
 
                     return true;
-                }
+                // }
 
                 return false;
             }
@@ -87,6 +87,7 @@ class ParseTree {
                 cout << "reached constant: " << currTerm << endl;
                 if (token->text == currTerm) {
                     path.push_back(i);
+
                     return true;
                 }
 
@@ -139,15 +140,28 @@ class ParseTree {
                     string currTerm = ruleVariation[this->children.size()];
                     
                     if (currTerm[0] == '<') {
+                        cout << currTerm << " can be broken" << '\n';
+
                         vector<int> path;
 
                         if (this->breakDown(currTerm, token, path)) {
+                            for (auto p : path) {
+                                cout << p << '>';
+                            }
+
+                            cout << '\n';
+
                             cout << "starting build of size: " << path.size() << endl;
+                            cout << "token: " << token->text << '\n';
                             this->buildUp(currTerm, token, path, path.size() - 1);
+
+                            break;
                         }
                     } else {
-                        if (token->text == currTerm) {
+                        if (token->text == currTerm || currTerm == "TERMINAL_OP") {
                             this->children.push_back(new ParseTree(new ParseNode(token->tokenCodeStringify(), token->text), this->rules));
+                        
+                            break;
                         }
                     }
                 }
