@@ -110,8 +110,7 @@ class ParseTree {
             this->complete = true;
         }
 
-        i--;
-        if (i < 0) {
+        if (i <= 0) {
             // reached leaf node
             newChild = new ParseNode(token->tokenCodeStringify(), token->text);
 
@@ -129,7 +128,7 @@ class ParseTree {
         }
 
         //calling from new child
-        currTerm = this->rules->rules[rule][path[i]][0];
+        currTerm = this->rules->rules[rule][path[i--]][0];
         this->children.back()->buildUp(currTerm, token, path, i);
         
         return;
