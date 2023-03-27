@@ -97,6 +97,7 @@ class ParseTree {
 
     // traverse thru tree and mark nodes that should be complete as complete
     void markComplete() {
+        cout << "checking completeness of " << this->root->type << ", " << this->root->val << endl;
         if (this->complete) {
             return;
         }
@@ -116,8 +117,8 @@ class ParseTree {
                     for (int i = 0; i < variation.size(); i++) {
                         
                         //checking if the term doesnt match
-                        if (!(variation[i] == this->children[i]->root->type || variation[i] == this->children[i]->root->val)) {
-                            cout << "dont work:";
+                        if (!(variation[i] == this->children[i]->root->type || variation[i] == this->children[i]->root->val || variation[i] == "TERMINAL_OP")) {
+                            cout << "dont work, var[i] = " << variation[i] << " (child is " << this->children[i]->root->type << ", " << this->children[i]->root->val << ")\n";
                             break;
                         }
 
