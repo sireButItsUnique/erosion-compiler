@@ -59,7 +59,6 @@ class ParseTree {
             
             vector<string> ruleVariation = this->rules->rules[rule][i];
             string currTerm = ruleVariation[0];
-            cout << "found variation: " << i << " with first term " << currTerm << endl;
 
             // testing if currTerm is a terminal operator (leaf node)
             if (currTerm == "TERMINAL_OP") {
@@ -118,6 +117,7 @@ class ParseTree {
                         
                         //checking if the term doesnt match
                         if (!(variation[i] == this->children[i]->root->type || variation[i] == this->children[i]->root->val)) {
+                            cout << "dont work:";
                             break;
                         }
 
@@ -135,7 +135,6 @@ class ParseTree {
     }
 
     void buildUp(string rule, SyntaxToken* token, vector<int>& path, int i) {
-        cout << "currently inside " << this->root->type << endl;
         string currTerm = rule;
 
         //adding child
@@ -178,8 +177,7 @@ class ParseTree {
                             }
                             cout << '\n';
 
-                            cout << "starting build of size: " << path.size() << endl;
-                            cout << "token: " << token->text << '\n';
+                            cout << "starting build of size: " << path.size() << " with token " << token->text << endl;
                             this->buildUp(currTerm, token, path, path.size() - 1);
                             this->markComplete();
 
@@ -214,6 +212,7 @@ class ParseTree {
                             cout << "starting build of size: " << path.size() << endl;
                             cout << "token: " << token->text << '\n';
                             this->buildUp(currTerm, token, path, path.size() - 1);
+                            this->markComplete();
 
                             break;
                         }
@@ -221,6 +220,8 @@ class ParseTree {
                         if (token->text == currTerm || currTerm == "TERMINAL_OP") {
                             this->children.push_back(new ParseTree(new ParseNode(token->tokenCodeStringify(), token->text), this->rules));
                             this->children.back()->complete = true;
+                            this->markComplete();
+
                             break;
                         }
                     }
