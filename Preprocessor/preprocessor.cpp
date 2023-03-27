@@ -3,35 +3,36 @@
 #include <string>
 using namespace std;
 
-int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        cout << "Format: erosion <filename>\n";
-        return 0;
+class Preprocessor {
+public:
+    string fileName;
+    
+    Preprocessor(string fileName) {
+        this->fileName = fileName;
     }
 
-    fstream source(argv[1]);
-    fstream res;
-    res.open("preprocessed.cor", ios::out);
-    string buffer;
-    if (!source) {
-        cout << "Invalid file\n";
-    }
+    void process() {
+        fstream source(this->fileName);
+        fstream res;
+        string buffer;
 
-    if (!res) {
-        return 0;
-    }
-    while (getline(source, buffer)) {
-        int commentPos = buffer.find("//");
-        if (commentPos != string::npos) {
-            buffer.erase(commentPos);
+        res.open("preprocessed.cor", ios::out);
+        if (!source) {
+            cout << "Invalid file\n";
         }
-        
-        if (!buffer.empty()) {
-            res << buffer << endl;
-        } 
-    }
 
-    source.close();
-    res.close();
-    return 0;
-}
+        while (getline(source, buffer)) {
+            int commentPos = buffer.find("//");
+            if (commentPos != string::npos) {
+                buffer.erase(commentPos);
+            }
+            
+            if (!buffer.empty()) {
+                res << buffer << endl;
+            } 
+        }
+
+        source.close();
+        res.close();
+    }
+};

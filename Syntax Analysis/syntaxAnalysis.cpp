@@ -32,6 +32,7 @@ class ParseTree {
     Lexer* lexer;
     Grammar* rules;
     bool complete = false;
+    vector<int> whiteList;
 
     // adding children
     void addChildren(vector<string>& children) {
@@ -237,20 +238,25 @@ class ParseTree {
     ParseTree(Lexer* lexer) {
         this->lexer = lexer;
         this->root = new ParseNode("<program>");
+        
         this->rules = new Grammar();
+        this->whiteList = vector<int>();
 
         return;
     }
 
     ParseTree(ParseNode* node, Grammar* grammar) {
         this->root = node;
+        
         this->rules = grammar;
+        this->whiteList = vector<int>();
     }
 
     ParseTree(string root, Grammar* grammar) {
         this->root = new ParseNode(root);
+        
         this->rules = grammar;
-
+        this->whiteList = vector<int>();
         return;
     }
 
@@ -265,6 +271,25 @@ class ParseTree {
     }
 
     // for testing (remove in prod)
+    void print() {
+        for (int i = 0; i < 0; i++) {
+            cout << "  ";
+        }
+        cout << this->root->type;
+        if (this->root->val != "") {
+            cout << ": " << this->root->val;
+        }
+
+        if (this->complete) {
+            cout << " (complete)";
+        }
+
+        cout << endl;
+        for (auto& c : this->children) {
+            c->print(0 + 1);
+        }
+    }
+
     void print(int depth) {
         for (int i = 0; i < depth; i++) {
             cout << "  ";
@@ -287,11 +312,11 @@ class ParseTree {
     }
 };
 
-int main() {
-    Lexer* lexer = new Lexer("test.cor");
-    ParseTree* ast = new ParseTree(lexer);
-    ast->build();
-    ast->print(0);
+// int main() {
+//     Lexer* lexer = new Lexer("test.cor");
+//     ParseTree* ast = new ParseTree(lexer);
+//     ast->build();
+//     ast->print();
 
-    return 0;
-}
+//     return 0;
+// }
