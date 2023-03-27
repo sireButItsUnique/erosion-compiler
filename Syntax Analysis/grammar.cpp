@@ -17,15 +17,23 @@ public:
         {"<func>",
             {
                 {"func", ":", "<type>", "<function>", "(", "<arg>", ")", "{", "<statement>", "}"},
+                {"func", ":", "<type>", "<function>", "(", ")", "{", "<statement>", "}"}
             }
         },
-        {"<arg>", 
+        {"<arg>",
             {
-                {"<declaration>"},
-                {"<declaration>", ", ", "<arg>"}, 
-                {""}  
+                {"var", ":", "<type>", "<variable>"},
+                {"var", ":", "<type>", "<variable>", "=" ,"<literal>"},
+                {"var", ":", "<type>", "<variable>", ", ", "<arg>"},
+                // {"var", ":", "<type>", "<variable>", ",", "<arg>"},
             }
         },
+        // {"<arg>", 
+        //     {
+        //         {"<declaration>"},
+        //         {"<declaration>", ", ", "<arg>"},
+        //     }
+        // },
         {"<statement>",
             {
                 {"<declaration>"},
@@ -44,7 +52,7 @@ public:
             {
                 {"return", "<literal>", "<newLine>"},
                 {"return", "<variable>", "<newLine>"},
-                {"return", "<function>(<args>)", "<newLine>"}
+                {"return", "<function>", "(", "<args>", ")", "<newLine>"}
             }
         },
         {"<declaration>",
