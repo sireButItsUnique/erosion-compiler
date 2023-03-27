@@ -96,19 +96,35 @@ class ParseTree {
         return found;
     }
 
+    // traverse thru tree and mark nodes that should be complete as complete
+    void markComplete() {
+        for (auto c : this->children) {
+            if (!c->complete) {
+                c->markComplete();
+            }
+        }
+
+        //check that all children are complete
+        if (this->children.back()->complete) {
+            
+            //find which variation of the rule the current thing is
+            for (auto variation: this->rules->rules[this->root->type]) {
+                if (this->children.size() == variation.size()) {
+                    for (int i = 0; i < variation.size(); i++) {
+
+                    }
+                }
+            }
+        }
+    }
+
     void buildUp(string rule, SyntaxToken* token, vector<int>& path, int i) {
+        cout << "currently inside " << this->root->type << endl;
         string currTerm = rule;
 
         //adding child
         ParseNode* newChild = new ParseNode(currTerm);
         this->children.push_back(new ParseTree(newChild, this->rules));
-
-        // we know its complete when it has equal num of children as num of
-        // terms in the rule variation
-        cout << this->children.size()  << " children out of " << this->rules->rules[this->root->type][path[i]].size() << " on " << rule << endl;
-        if (this->children.size() >= this->rules->rules[this->root->type][path[i]].size() && this->root->type != "<program>") {
-            this->complete = true;
-        }
 
         if (i <= 0) {
             // reached leaf node
@@ -116,14 +132,6 @@ class ParseTree {
 
             this->children.back()->children.push_back(new ParseTree(newChild, this->rules));
             this->children.back()->children.back()->complete = true;
-
-            // we know its complete when it (last children) has equal num of children as num of
-            // terms in the rule variation (0 of rule of last child)
-            int totalTerms = this->rules->rules[this->children.back()->root->type][0].size();
-            cout << this->children.back()->children.size() << " child children out of " << totalTerms << " on " << this->children.back()->root->type << endl;
-            if (this->children.back()->children.size() >= totalTerms) {
-                this->children.back()->complete = true;
-            }
             return;
         }
 
