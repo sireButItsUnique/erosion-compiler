@@ -16,7 +16,6 @@ int main(int argc, char* argv[]) {
         cout << "Error: <filename> must be a .cor file\n";
         return 0;
     }
-    
     if (extension.substr(extension.size() - 4, 4) != ".cor") {
         cout << "Error: <filename> must be a .cor file\n";
         return 0;
