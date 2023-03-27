@@ -98,6 +98,10 @@ class ParseTree {
 
     // traverse thru tree and mark nodes that should be complete as complete
     void markComplete() {
+        if (this->complete) {
+            return;
+        }
+
         for (auto c : this->children) {
             if (!c->complete) {
                 c->markComplete();
@@ -111,11 +115,23 @@ class ParseTree {
             for (auto variation: this->rules->rules[this->root->type]) {
                 if (this->children.size() == variation.size()) {
                     for (int i = 0; i < variation.size(); i++) {
+                        
+                        //checking if the term doesnt match
+                        if (!(variation[i] == this->children[i]->root->type || variation[i] == this->children[i]->root->val)) {
+                            break;
+                        }
 
+                        //everything worked for this variation
+                        if (i == variation.size() - 1) {
+                            this->complete = true;
+                            return;
+                        }
                     }
                 }
             }
         }
+
+        return;
     }
 
     void buildUp(string rule, SyntaxToken* token, vector<int>& path, int i) {
@@ -165,6 +181,7 @@ class ParseTree {
                             cout << "starting build of size: " << path.size() << endl;
                             cout << "token: " << token->text << '\n';
                             this->buildUp(currTerm, token, path, path.size() - 1);
+                            this->markComplete();
 
                             break;
                         }
@@ -172,6 +189,7 @@ class ParseTree {
                         if (token->text == currTerm || currTerm == "TERMINAL_OP") {
                             this->children.push_back(new ParseTree(new ParseNode(token->tokenCodeStringify(), token->text), this->rules));
                             this->children.back()->complete = true;
+                            this->markComplete();
                             break;
                         }
                     }
