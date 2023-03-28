@@ -56,8 +56,12 @@ class ParseTree {
         cout << "called on rule: " << rule << endl;
         bool found = false;
 
+        // add all the rules to the whitelist to initialize it (start removing from it later)
+        for (int i = 0; i < this->rules->rules[rule].size(); i++) {
+            this->whiteList.push_back(i);
+        }
+
         for (int i = 0; i < this->rules->rules[rule].size(); i++) {  // iterate thru all possible rule syntaxes
-            
             vector<string> ruleVariation = this->rules->rules[rule][i];
             string currTerm = ruleVariation[0];
 
