@@ -28,11 +28,12 @@ class ParseNode {
 class ParseTree {
    private:
     ParseNode* root;  // root of current parse tree
-    vector<ParseTree*> children;  // children of the root node of the current parse tree
+    vector<ParseTree*>
+        children;  // children of the root node of the current parse tree
     Lexer* lexer;
     Grammar* rules;
     bool complete = false;
-    vector<int> whiteList;
+    vector<int> whitelist;
 
     // adding children
     void addChildren(vector<string>& children) {
@@ -49,6 +50,10 @@ class ParseTree {
         return;
     }
 
+    void constructWhitelist() {
+        
+    }
+
     // go down the tree + add nodes to tree recursively
     // return after reaching terminal operator
     // return syntax error if missing a token (e.g. a bracket)
@@ -56,19 +61,17 @@ class ParseTree {
         cout << "called on rule: " << rule << endl;
         bool found = false;
 
-        // add all the rules to the whitelist to initialize it (start removing from it later)
-        for (int i = 0; i < this->rules->rules[rule].size(); i++) {
-            this->whiteList.push_back(i);
-        }
-
-        for (int i = 0; i < this->rules->rules[rule].size(); i++) {  // iterate thru all possible rule syntaxes
+        for (int i = 0; i < this->rules->rules[rule].size();
+             i++) {  // iterate thru all possible rule syntaxes
             vector<string> ruleVariation = this->rules->rules[rule][i];
             string currTerm = ruleVariation[0];
 
             // testing if currTerm is a terminal operator (leaf node)
             if (currTerm == "TERMINAL_OP") {
                 if (rule == "<" + token->tokenCodeStringify() + ">") {
+                    this->whitelist.push_back(i);
                     path.push_back(i);
+
                     return true;
                 }
 
@@ -80,6 +83,11 @@ class ParseTree {
                 found = this->breakDown(currTerm, token, path);
 
                 if (found) {
+                    this->whitelist.push_back(i);
+                    for (int j = i + 1; j < this->rules->rules[rule].size(); j++) {
+                        //call whitelist -> returns a nth, if u can match token to the variation j add to whitelist
+                        //params: token, ruleVariation
+                    }
                     path.push_back(i);
                     return found;
                 }
@@ -89,7 +97,7 @@ class ParseTree {
             else {
                 if (token->text == currTerm) {
                     path.push_back(i);
-
+                    this->whitelist.push_back(i);
                     return true;
                 }
 
@@ -102,7 +110,8 @@ class ParseTree {
 
     // traverse thru tree and mark nodes that should be complete as complete
     void markComplete() {
-        cout << "checking completeness of " << this->root->type << ", " << this->root->val << endl;
+        cout << "checking completeness of " << this->root->type << ", "
+             << this->root->val << endl;
         if (this->complete) {
             return;
         }
@@ -113,21 +122,24 @@ class ParseTree {
             }
         }
 
-        //check that all children are complete
+        // check that all children are complete
         if (this->children.back()->complete) {
-            
-            //find which variation of the rule the current thing is
-            for (auto variation: this->rules->rules[this->root->type]) {
+            // find which variation of the rule the current thing is
+            for (auto variation : this->rules->rules[this->root->type]) {
                 if (this->children.size() == variation.size()) {
                     for (int i = 0; i < variation.size(); i++) {
-                        
-                        //checking if the term doesnt match
-                        if (!(variation[i] == this->children[i]->root->type || variation[i] == this->children[i]->root->val || variation[i] == "TERMINAL_OP")) {
-                            cout << "dont work, var[i] = " << variation[i] << " (child is " << this->children[i]->root->type << ", " << this->children[i]->root->val << ")\n";
+                        // checking if the term doesnt match
+                        if (!(variation[i] == this->children[i]->root->type ||
+                              variation[i] == this->children[i]->root->val ||
+                              variation[i] == "TERMINAL_OP")) {
+                            cout << "dont work, var[i] = " << variation[i]
+                                 << " (child is "
+                                 << this->children[i]->root->type << ", "
+                                 << this->children[i]->root->val << ")\n";
                             break;
                         }
 
-                        //everything worked for this variation
+                        // everything worked for this variation
                         if (i == variation.size() - 1) {
                             this->complete = true;
                             return;
@@ -143,7 +155,7 @@ class ParseTree {
     void buildUp(string rule, SyntaxToken* token, vector<int>& path, int i) {
         string currTerm = rule;
 
-        //adding child
+        // adding child
         ParseNode* newChild = new ParseNode(currTerm);
         this->children.push_back(new ParseTree(newChild, this->rules));
 
@@ -151,29 +163,28 @@ class ParseTree {
             // reached leaf node
             newChild = new ParseNode(token->tokenCodeStringify(), token->text);
 
-            this->children.back()->children.push_back(new ParseTree(newChild, this->rules));
+            this->children.back()->children.push_back(
+                new ParseTree(newChild, this->rules));
             this->children.back()->children.back()->complete = true;
             return;
         }
 
-        //calling from new child
+        // calling from new child
         currTerm = this->rules->rules[rule][path[i--]][0];
         this->children.back()->buildUp(currTerm, token, path, i);
-        
+
         return;
     }
 
     void matchToken(SyntaxToken* token) {
-        if (this->children.empty() || this->children[this->children.size() - 1]->complete) {
-            
+        if (this->children.empty() ||
+            this->children[this->children.size() - 1]->complete) {
             // looping thru rule variations
-            for (auto ruleVariation : this->rules->rules[this->root->type]) {  
-                
+            for (auto ruleVariation : this->rules->rules[this->root->type]) {
                 if (this->root->type == "<program>") {
                     string currTerm = ruleVariation[0];
-                    
-                    if (currTerm[0] == '<') {
 
+                    if (currTerm[0] == '<') {
                         vector<int> path;
 
                         if (this->breakDown(currTerm, token, path)) {
@@ -183,15 +194,21 @@ class ParseTree {
                             }
                             cout << '\n';
 
-                            cout << "starting build of size: " << path.size() << " with token " << token->text << endl;
-                            this->buildUp(currTerm, token, path, path.size() - 1);
+                            cout << "starting build of size: " << path.size()
+                                 << " with token " << token->text << endl;
+                            this->buildUp(currTerm, token, path,
+                                          path.size() - 1);
                             this->markComplete();
 
                             break;
                         }
                     } else {
-                        if (token->text == currTerm || currTerm == "TERMINAL_OP") {
-                            this->children.push_back(new ParseTree(new ParseNode(token->tokenCodeStringify(), token->text), this->rules));
+                        if (token->text == currTerm ||
+                            currTerm == "TERMINAL_OP") {
+                            this->children.push_back(new ParseTree(
+                                new ParseNode(token->tokenCodeStringify(),
+                                              token->text),
+                                this->rules));
                             this->children.back()->complete = true;
                             this->markComplete();
                             break;
@@ -199,10 +216,11 @@ class ParseTree {
                     }
                 }
 
-                // checking if there are enough terms left in this specific rule variation
+                // checking if there are enough terms left in this specific rule
+                // variation
                 else if (ruleVariation.size() > this->children.size()) {
                     string currTerm = ruleVariation[this->children.size()];
-                    
+
                     if (currTerm[0] == '<') {
                         cout << currTerm << " can be broken" << '\n';
 
@@ -215,16 +233,22 @@ class ParseTree {
                             }
                             cout << '\n';
 
-                            cout << "starting build of size: " << path.size() << endl;
+                            cout << "starting build of size: " << path.size()
+                                 << endl;
                             cout << "token: " << token->text << '\n';
-                            this->buildUp(currTerm, token, path, path.size() - 1);
+                            this->buildUp(currTerm, token, path,
+                                          path.size() - 1);
                             this->markComplete();
 
                             break;
                         }
                     } else {
-                        if (token->text == currTerm || currTerm == "TERMINAL_OP") {
-                            this->children.push_back(new ParseTree(new ParseNode(token->tokenCodeStringify(), token->text), this->rules));
+                        if (token->text == currTerm ||
+                            currTerm == "TERMINAL_OP") {
+                            this->children.push_back(new ParseTree(
+                                new ParseNode(token->tokenCodeStringify(),
+                                              token->text),
+                                this->rules));
                             this->children.back()->complete = true;
                             this->markComplete();
 
@@ -242,25 +266,25 @@ class ParseTree {
     ParseTree(Lexer* lexer) {
         this->lexer = lexer;
         this->root = new ParseNode("<program>");
-        
+
         this->rules = new Grammar();
-        this->whiteList = vector<int>();
+        this->whitelist = vector<int>();
 
         return;
     }
 
     ParseTree(ParseNode* node, Grammar* grammar) {
         this->root = node;
-        
+
         this->rules = grammar;
-        this->whiteList = vector<int>();
+        this->whitelist = vector<int>();
     }
 
     ParseTree(string root, Grammar* grammar) {
         this->root = new ParseNode(root);
-        
+
         this->rules = grammar;
-        this->whiteList = vector<int>();
+        this->whitelist = vector<int>();
         return;
     }
 
