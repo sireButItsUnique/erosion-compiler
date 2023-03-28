@@ -50,8 +50,24 @@ class ParseTree {
         return;
     }
 
-    void constructWhitelist() {
-        
+    bool constructWhitelist(string rule, SyntaxToken* token, string currTerm, int idx) {
+        // check for the same things as in the breakDown function
+        if (currTerm == "TERMINAL_OP" && rule == '<' + token->tokenCodeStringify() + '>') {
+            this->whitelist.push_back(idx);
+            return true;
+        } else if (currTerm[0] == '<') {
+            for (auto variation : this->rules->rules[currTerm]) {
+                if (this->constructWhitelist(currTerm, token, variation[0], idx)) {
+                    return true;
+                }
+            }
+            return false;
+        } else {
+            if (token->text == currTerm) {
+                this->whitelist.push_back(idx);
+                return true;
+            }
+        }
     }
 
     // go down the tree + add nodes to tree recursively
@@ -61,14 +77,13 @@ class ParseTree {
         cout << "called on rule: " << rule << endl;
         bool found = false;
 
-        for (int i = 0; i < this->rules->rules[rule].size();
-             i++) {  // iterate thru all possible rule syntaxes
+        for (int i = 0; i < this->rules->rules[rule].size(); i++) {  // iterate thru all possible rule syntaxes
             vector<string> ruleVariation = this->rules->rules[rule][i];
             string currTerm = ruleVariation[0];
 
             // testing if currTerm is a terminal operator (leaf node)
             if (currTerm == "TERMINAL_OP") {
-                if (rule == "<" + token->tokenCodeStringify() + ">") {
+                if (rule == '<' + token->tokenCodeStringify() + '>') {
                     this->whitelist.push_back(i);
                     path.push_back(i);
 
@@ -86,7 +101,9 @@ class ParseTree {
                     this->whitelist.push_back(i);
                     for (int j = i + 1; j < this->rules->rules[rule].size(); j++) {
                         //call whitelist -> returns a nth, if u can match token to the variation j add to whitelist
-                        //params: token, ruleVariation
+                        //params: rule, token, (technically the ) currTerm
+
+                        this->constructWhitelist(rule, token, this->rules->rules[rule][j][0], j);
                     }
                     path.push_back(i);
                     return found;
