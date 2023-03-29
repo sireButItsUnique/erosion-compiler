@@ -2,3 +2,4 @@
 *.out
 *.cor
 erosion
+*.o
