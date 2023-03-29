@@ -1,38 +1,31 @@
-#include <fstream>
-#include <iostream>
-#include <string>
-using namespace std;
+#include "preprocessor.hpp"
 
-class Preprocessor {
-public:
-    string fileName;
-    
-    Preprocessor(string fileName) {
-        this->fileName = fileName;
-    }
+Preprocessor::Preprocessor(string fileName) {
+	this->fileName = fileName;
+}
 
-    void process() {
-        fstream source(this->fileName);
-        fstream res;
-        string buffer;
+void Preprocessor::process() {
+	fstream source(this->fileName);
+	fstream res;
+	string buffer;
 
-        res.open("preprocessed.cor", ios::out);
-        if (!source) {
-            cout << "Invalid file\n";
-        }
+	res.open("preprocessed.cor", ios::out);
+	if (!source) {
+		cout << "Invalid file\n";
+		return;
+	}
 
-        while (getline(source, buffer)) {
-            int commentPos = buffer.find("//");
-            if (commentPos != string::npos) {
-                buffer.erase(commentPos);
-            }
-            
-            if (!buffer.empty()) {
-                res << buffer << endl;
-            } 
-        }
+	while (getline(source, buffer)) {
+		int commentPos = buffer.find("//");
+		if (commentPos != string::npos) {
+			buffer.erase(commentPos);
+		}
+		
+		if (!buffer.empty()) {
+			res << buffer << endl;
+		} 
+	}
 
-        source.close();
-        res.close();
-    }
-};
+	source.close();
+	res.close();
+}
