@@ -1,15 +1,56 @@
+// #include <bits/stdc++.h>
 #include "ParseNode.hpp"
+// #include "grammar.hpp"
+// using namespace std;
 
 ParseNode::ParseNode(Lexer* lexer) {
-    
+    // actual lexer
+    this->lexer = lexer;
+
+    // variables for the lex token it represents
+    this->type = "<program>";
+    this->val = "";
+
+    // variables to help during construction of tree
+    this->complete = false;
+    this->children = vector<ParseNode*>(0);
+    this->whitelist = {0, 1, 2, 3}; 
 }
 
 ParseNode::ParseNode(Lexer* lexer, string type) {
+    // actual lexer
+    this->lexer = lexer;
 
+    // variables for the lex token it represents
+    this->type = type;
+    this->val = "";
+
+    // variables to help during construction of tree
+    this->complete = false;
+    this->children = vector<ParseNode*>(0);
+    this->whitelist = vector<int>(0);
+
+    for (int i = 0; i < rules.at(type).size(); i++) {
+        this->whitelist.push_back(i);
+    }
 }
 
 ParseNode::ParseNode(Lexer* lexer, string type, string val) {
+    // actual lexer
+    this->lexer = lexer;
 
+    // variables for the lex token it represents
+    this->type = type;
+    this->val = val;
+
+    // variables to help during construction of tree
+    this->complete = false;
+    this->children = vector<ParseNode*>(0);
+    this->whitelist = vector<int>(0); 
+
+    for (int i = 0; i < rules.at(type).size(); i++) {
+        this->whitelist.push_back(i);
+    }
 }
 
 void ParseNode::updateWhitelist() {
