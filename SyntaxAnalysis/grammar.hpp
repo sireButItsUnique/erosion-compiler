@@ -14,6 +14,13 @@ const unordered_map<string, vector<vector<string>>> rules{
 			{"<conditional>"}
 		}
 	},
+	{"<statement>",
+		{
+			{"<declaration>"},
+			{"<conditional>"},
+			{"<return>"},
+		}
+	},
 	{"<func>",
 		{
 			{"func", ":", "<type>", "<function>", "(", "<arg>", ")", "{", "<statement>", "}"},
@@ -25,20 +32,6 @@ const unordered_map<string, vector<vector<string>>> rules{
 			{"var", ":", "<type>", "<variable>"},
 			{"var", ":", "<type>", "<variable>", "=" ,"<literal>"},
 			{"var", ":", "<type>", "<variable>", ", ", "<arg>"},
-			// {"var", ":", "<type>", "<variable>", ",", "<arg>"},
-		}
-	},
-	// {"<arg>", 
-	// 	{
-	// 		{"<declaration>"},
-	// 		{"<declaration>", ", ", "<arg>"},
-	// 	}
-	// },
-	{"<statement>",
-		{
-			{"<declaration>"},
-			{"<conditional>"},
-			{"<return>"},
 		}
 	},
 	{"<conditional>", 
@@ -52,7 +45,7 @@ const unordered_map<string, vector<vector<string>>> rules{
 		{
 			{"return", "<literal>", "<newLine>"},
 			{"return", "<variable>", "<newLine>"},
-			{"return", "<function>", "(", "<args>", ")", "<newLine>"}
+			{"return", "<function>", "(", "<arg>", ")", "<newLine>"}
 		}
 	},
 	{"<declaration>",
@@ -100,17 +93,7 @@ const unordered_map<string, vector<vector<string>>> rules{
 			{"<integerLiteral>"}
 		}
 	},
-	{"<type>", {{"TERMINAL_OP"}}},
-	// {"<type>", 
-	// 	{
-	// 		{"int"}, 
-	// 		{"float"},
-	// 		{"string"},
-	// 		{"char"}, 
-	// 		{"bool"}, 
-	// 		{"<type>", ":", "<type>"}
-	// 	}
-	// },
+	{"<type>", {{"TERMINAL_OP"}}}, //note: deal with <type>:<type> later
 	{"<newLine>", {{"TERMINAL_OP"}}}, // semicolon
 	{"<variable>", {{"TERMINAL_OP"}}},
 	{"<function>", {{"TERMINAL_OP"}}},

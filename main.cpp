@@ -1,4 +1,5 @@
 #include "./Preprocessor/preprocessor.hpp"
+#include "./LexicalAnalysis/lexicalAnalysis.hpp"
 #include "./SyntaxAnalysis/syntaxAnalysis.hpp"
 
 #include <iostream>
