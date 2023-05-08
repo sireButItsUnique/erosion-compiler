@@ -51,15 +51,24 @@ ParseNode::ParseNode(Lexer* lexer, string type, string val) {
 }
 
 void ParseNode::updateWhitelist() {
+
+    // looping through each term currently under the node
     for (int i = 0; i < this->children.size(); i++) {
+        
+        // looping through each term in the remaining whitelist for the current node
+        // in for (...;...;...) form in order to use std::vector.erase() method
         for (int j = 0; j < this->whitelist.size(); j++) {
+            
+            // current variation in the rules as provided by the whitelist
             int variation = this->whitelist[j];
             
+            //checking if there are more terms under the node than there are terms in the variation, if so remove
             if (this->children.size() > rules[this->type][variation].size()) {
-                
                 this->whitelist.erase(this->whitelist.begin() + j);
-            } else {
-
+            } 
+            
+            //test whether or not the terms under the node and the terms in the variation match
+            else {
                 string ruleType = rules[this->type][variation][i];
                 string childType = this->children[i]->type;
 
