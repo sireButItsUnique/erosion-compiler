@@ -1,4 +1,4 @@
-#include "lexicalAnalysis.hpp"
+#include "Lexer.hpp"
 
 //remember to add flags after colon and "var" or "func"
 

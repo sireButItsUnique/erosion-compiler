@@ -1,6 +1,6 @@
-#include "./Preprocessor/preprocessor.hpp"
-#include "./LexicalAnalysis/lexicalAnalysis.hpp"
-#include "./SyntaxAnalysis/syntaxAnalysis.hpp"
+#include "./Preprocessor/Preprocessor.hpp"
+#include "./LexicalAnalysis/Lexer.hpp"
+#include "./SyntaxAnalysis/ParseNode.hpp"
 
 #include <iostream>
 #include <string>
@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
 
     Lexer* lexer = new Lexer("preprocessed.cor");
 
-    ParseTree* ast = new ParseTree(lexer);
+    ParseNode* ast = new ParseNode(lexer);
     ast->build();
     ast->print();
 

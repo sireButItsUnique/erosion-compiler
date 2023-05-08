@@ -1,4 +1,4 @@
-#include "preprocessor.hpp"
+#include "Preprocessor.hpp"
 
 Preprocessor::Preprocessor(string fileName) {
 	this->fileName = fileName;

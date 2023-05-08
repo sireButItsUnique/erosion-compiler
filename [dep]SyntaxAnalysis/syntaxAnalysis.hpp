@@ -1,7 +1,7 @@
 // change this later to make code more optimized
 #include <bits/stdc++.h>
 
-#include "../LexicalAnalysis/lexicalAnalysis.hpp"
+#include "../LexicalAnalysis/Lexer.hpp"
 #include "grammar.hpp"
 using namespace std;
 
