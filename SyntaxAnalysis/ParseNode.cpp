@@ -57,14 +57,14 @@ void ParseNode::updateWhitelist() {
             
             if (this->children.size() > rules[this->type][variation].size()) {
                 
-                this->children.erase(this->children.begin() + j);
+                this->whitelist.erase(this->whitelist.begin() + j);
             } else {
 
                 string ruleType = rules[this->type][variation][i];
                 string childType = this->children[i]->type;
 
                 if (ruleType != childType) {
-                    this->children.erase(this->children.begin() + j);
+                    this->whitelist.erase(this->whitelist.begin() + j);
                 } 
             }
         }
