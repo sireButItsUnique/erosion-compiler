@@ -7,7 +7,6 @@ using namespace std;
 
 class ParseNode {
 public:
-
     // actual lexer
     Lexer* lexer;
 
@@ -22,17 +21,20 @@ public:
 
     /**
      * @brief constructs a new ParseNode that will be the root
+     * @param lexer the lexer for the tree
     */
     ParseNode(Lexer*);
 
     /**
      * @brief constructs a new ParseNode that will be an intermediary node, given a type
+     * @param lexer the lexer for the tree
      * @param type what type the node will be
     */
     ParseNode(Lexer*, string type);
 
     /**
      * @brief constructs a new ParseNode that will be a leaf node, given a type and a val
+     * @param lexer the lexer for the tree
      * @param type what type the token will be
      * @param val what the actual piece of code the node is representing
     */
