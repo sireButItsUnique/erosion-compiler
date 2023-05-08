@@ -17,6 +17,10 @@ public:
     // variables to help during construction of tree
     bool complete;
     vector<ParseNode*> children;
+
+    /**
+     * @brief holds a vector of integers (indices of whitelisted types in each rule)
+    */
     vector<int> whitelist; 
 
     /**

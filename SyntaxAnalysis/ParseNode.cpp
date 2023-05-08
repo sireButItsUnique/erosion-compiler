@@ -1,7 +1,4 @@
-// #include <bits/stdc++.h>
 #include "ParseNode.hpp"
-// #include "grammar.hpp"
-// using namespace std;
 
 ParseNode::ParseNode(Lexer* lexer) {
     // actual lexer
@@ -48,13 +45,30 @@ ParseNode::ParseNode(Lexer* lexer, string type, string val) {
     this->children = vector<ParseNode*>(0);
     this->whitelist = vector<int>(0); 
 
-    for (int i = 0; i < rules.at(type).size(); i++) {
+    for (int i = 0; i < rules[type].size(); i++) {
         this->whitelist.push_back(i);
     }
 }
 
 void ParseNode::updateWhitelist() {
+    for (int i = 0; i < this->children.size(); i++) {
+        for (int j = 0; j < this->whitelist.size(); j++) {
+            int variation = this->whitelist[j];
+            
+            if (this->children.size() > rules[this->type][variation].size()) {
+                
+                this->children.erase(this->children.begin() + j);
+            } else {
 
+                string ruleType = rules[this->type][variation][i];
+                string childType = this->children[i]->type;
+
+                if (ruleType != childType) {
+                    this->children.erase(this->children.begin() + j);
+                } 
+            }
+        }
+    }
 }
 
 void ParseNode::updateCompleteness() {

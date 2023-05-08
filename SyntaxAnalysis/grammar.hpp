@@ -5,7 +5,10 @@
 #include <string>
 using namespace std;
 
-const unordered_map<string, vector<vector<string>>> rules{
+/**
+ * @brief rules[type][variation][term]
+*/
+unordered_map<string, vector<vector<string>>> rules{
 	{"<program>",
 		{
 			{"<declaration>"},
