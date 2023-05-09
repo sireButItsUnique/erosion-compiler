@@ -8,7 +8,7 @@ using namespace std;
 /**
  * @brief rules[type][variation][term]
 */
-unordered_map<string, vector<vector<string>>> rules{
+static const unordered_map<string, vector<vector<string>>> rules{
 	{"<program>",
 		{
 			{"<declaration>"},

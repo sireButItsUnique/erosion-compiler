@@ -67,8 +67,10 @@ private:
      * @brief recursively breaks down rules to find leaf node, returns false if it can't find a valid path
      * @param token the token that must find its place in the tree
      * @param path the resulting path that's acceptable for the token
+     * @param type the token type
+     * @param first whether or not it's the first time being called
     */
-    bool findPath(SyntaxToken*, stack<int>&);
+    bool findPath(SyntaxToken*, stack<int>&, string, bool = true);
 
     /**
      * @brief recursively constructs a path based on path given + places token as leaf node

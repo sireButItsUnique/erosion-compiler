@@ -1,11 +1,14 @@
+SHELL=/bin/bash
+
 CC=g++
-CFLAGS=-std=c++11 -Wall -Wextra -pedantic -O0 -g
-SRCS=$(wildcard *.cpp) $(wildcard */*.cpp)
+CFLAGS=-std=c++20 -Wall -Wextra -pedantic -g -march=native
+SRCS=$(wildcard *.cpp) $(shell ls {FinalCodeGenerator,IntermediateCodeGenerator,LexicalAnalysis,Preprocessor,SemanticAnalysis,SyntaxAnalysis}/*.cpp)
 OBJS=$(SRCS:.cpp=.o)
 
 debug: erosion
 	./erosion test.cor
 
+release: CFLAGS += -O2
 release: erosion
 	strip -s erosion
 

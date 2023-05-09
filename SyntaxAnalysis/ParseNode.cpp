@@ -45,7 +45,7 @@ ParseNode::ParseNode(Lexer* lexer, string type, string val) {
 	this->children = vector<ParseNode*>(0);
 	this->whitelist = vector<int>(0); 
 
-	for (int i = 0; i < rules[type].size(); i++) {
+	for (int i = 0; i < rules.at(type).size(); i++) {
 		this->whitelist.push_back(i);
 	}
 }
@@ -63,13 +63,13 @@ void ParseNode::updateWhitelist() {
 			int variation = this->whitelist[j];
 			
 			// checking if there are more terms under the node than there are terms in the variation, if so remove
-			if (this->children.size() > rules[this->type][variation].size()) {
+			if (this->children.size() > rules.at(this->type)[variation].size()) {
 				this->whitelist.erase(this->whitelist.begin() + j);
 			} 
 			
 			// test whether or not the terms under the node and the terms in the variation match
 			else {
-				string ruleType = rules[this->type][variation][i];
+				string ruleType = rules.at(this->type)[variation][i];
 				string childType = this->children[i]->type;
 
 				if (ruleType != childType) {
@@ -92,7 +92,7 @@ void ParseNode::updateCompleteness() {
 	}
 
 	// whether it has the correct number of children/terms
-	if (rules[type][whitelist[0]].size() != children.size()) {
+	if (rules.at(type)[whitelist[0]].size() != children.size()) {
 		return;
 	}
 
@@ -101,13 +101,25 @@ void ParseNode::updateCompleteness() {
 	return;   
 }
 
-bool ParseNode::findPath(SyntaxToken* token, stack<int>& res) {
-	for (const &variationIdx : whitelist) {
+bool ParseNode::findPath(SyntaxToken* token, stack<int>& res, string type, bool first) {
+	// issue: it always looks at the first thing, for example when trying to parse the ":" after "var" in <declaration> it dies
+	// it always tries to match against "var" because its first in the list
+	for (const auto &variationIdx : whitelist) {
+		if (variationIdx >= rules.at(type).size()) {
+			continue;
+		}
+
 		const vector<string>& variation = rules.at(type)[variationIdx];
-		const string currTerm = variation[children.size()];
+
+		if ((variation.size() - 1) < first * children.size()) {
+			continue;
+		}
+
+		const string currTerm = variation[first * children.size()];
+
 
 		if (currTerm[0] == '<') {
-			if (findPath(token, res)) {
+			if (findPath(token, res, currTerm, false)) {
 				res.push(variationIdx);
 				return true;
 			}
@@ -122,6 +134,7 @@ bool ParseNode::findPath(SyntaxToken* token, stack<int>& res) {
 }
 
 void ParseNode::constructPath(SyntaxToken* token, stack<int>& path) {
+	//children.emplace_back(new ParseNode(lexer, rules.at(type)[path.top()][0]));
 
 }
 
@@ -131,7 +144,7 @@ bool ParseNode::handleToken(SyntaxToken* token) {
 	if (children.empty() || children.back()->complete) {
 		
 		stack<int> validPath;
-		if (findPath(token, validPath)) {
+		if (findPath(token, validPath, type)) {
 			constructPath(token, validPath);
 			updateWhitelist();
 			updateCompleteness();
