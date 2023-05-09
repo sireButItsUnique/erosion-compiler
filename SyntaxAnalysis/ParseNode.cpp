@@ -101,25 +101,63 @@ void ParseNode::updateCompleteness() {
 	return;   
 }
 
-bool ParseNode::findPath(SyntaxToken* token, vector<int>& res) {
+bool ParseNode::findPath(SyntaxToken* token, stack<int>& res) {
+	for (const &variationIdx : whitelist) {
+		const vector<string>& variation = rules.at(type)[variationIdx];
+		const string currTerm = variation[children.size()];
 
+		if (currTerm[0] == '<') {
+			if (findPath(token, res)) {
+				res.push(variationIdx);
+				return true;
+			}
+		} else {
+			if (currTerm == token->text) {
+				res.push(variationIdx);
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
-void ParseNode::constructPath(SyntaxToken* token, vector<int>& path) {
+void ParseNode::constructPath(SyntaxToken* token, stack<int>& path) {
 
 }
 
 bool ParseNode::handleToken(SyntaxToken* token) {
+	
+	// create new node
+	if (children.empty() || children.back()->complete) {
+		
+		stack<int> validPath;
+		if (findPath(token, validPath)) {
+			constructPath(token, validPath);
+			updateWhitelist();
+			updateCompleteness();
+		} else {
+			return false;
+		}
+	}
 
+	// go into latest child node
+	else {
+		return children.back()->handleToken(token);
+	}
 }
 
 void ParseNode::build() {
+	SyntaxToken* next = lexer->nextToken();
 
+	while (next) {
+		handleToken(next);
+		next = lexer->nextToken();
+	}
 }
 
 void ParseNode::print() {
 	for (int i = 0; i < 0; i++) {
-		cout << "  ";
+		std::cout << "  ";
 	}
 	cout << this->type;
 	if (this->val != "") {
@@ -141,7 +179,7 @@ void ParseNode::print(int depth) {
 		cout << "  ";
 	}
 	
-	cout << this->type;
+	std::cout << this->type;
 	if (this->val != "") {
 		cout << ": " << this->val;
 	}
