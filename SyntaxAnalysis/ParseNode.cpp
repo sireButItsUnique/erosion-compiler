@@ -81,6 +81,7 @@ void ParseNode::updateWhitelist() {
 }
 
 void ParseNode::updateCompleteness() {
+
 	// whether all the children are complete
 	for (const auto &child : children) {
 		if (!child->complete) {
@@ -102,6 +103,7 @@ void ParseNode::updateCompleteness() {
 }
 
 bool ParseNode::findPath(SyntaxToken* token, stack<int>& res, string type, bool first) {
+	
 	// issue: it always looks at the first thing, for example when trying to parse the ":" after "var" in <declaration> it dies
 	// it always tries to match against "var" because its first in the list
 	for (const auto &variationIdx : whitelist) {
