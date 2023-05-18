@@ -125,7 +125,10 @@ bool ParseNode::findPath(SyntaxToken* token, stack<int>& res, string type, bool 
 		}
 	}
 
-	//
+	int idx = children.size();
+	if (!first || this->type == "<program>")
+		idx = 0;
+
 	for (const auto &variationIdx : *tmpWhitelist) {
 		if (variationIdx >= rules.at(type).size()) {
 			continue;
@@ -133,11 +136,11 @@ bool ParseNode::findPath(SyntaxToken* token, stack<int>& res, string type, bool 
 
 		const vector<string>& variation = rules.at(type)[variationIdx];
 
-		if (first * children.size() >= variation.size()) {
+		if (idx >= variation.size()) {
 			continue;
 		}
 
-		const string currTerm = variation[first * children.size()];
+		const string currTerm = variation[idx];
 
 		if (currTerm[0] == '<') {
 			if (findPath(token, res, currTerm, false)) {
