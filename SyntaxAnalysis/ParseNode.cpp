@@ -46,6 +46,12 @@ ParseNode::ParseNode(Lexer* lexer, string type, string val) {
 	this->whitelist = vector<int>(0); 
 }
 
+ParseNode::~ParseNode() {
+	for (int i = 0; i < this->children.size(); i++) {
+		delete this->children[i];
+	}
+}
+
 void ParseNode::updateWhitelist() {
 
 	// looping through each term currently under the node
@@ -118,7 +124,7 @@ bool ParseNode::findPath(SyntaxToken* token, stack<int>& res, string type, bool 
 			tmpWhitelist->push_back(i);
 		}
 	}
-	
+
 	//
 	for (const auto &variationIdx : *tmpWhitelist) {
 		if (variationIdx >= rules.at(type).size()) {
@@ -136,17 +142,28 @@ bool ParseNode::findPath(SyntaxToken* token, stack<int>& res, string type, bool 
 		if (currTerm[0] == '<') {
 			if (findPath(token, res, currTerm, false)) {
 				res.push(variationIdx);
+				if (!first) {
+					delete tmpWhitelist;
+				}
 				return true;
-			
 			}
 		} else if (currTerm == "TERMINAL_OP") {
+			if (!first) {
+				delete tmpWhitelist;
+			}
 			return type.substr(1, type.size() - 2) == token->tokenCodeStringify();
 		} else {
 			if (currTerm == token->text) {
 				res.push(variationIdx);
+				if (!first) {
+					delete tmpWhitelist;
+				}
 				return true;
 			}
 		}
+	}
+	if (!first) {
+		delete tmpWhitelist;
 	}
 	return false;
 }
@@ -183,16 +200,20 @@ bool ParseNode::handleToken(SyntaxToken* token) {
 	}
 }
 
-void ParseNode::build() {
+bool ParseNode::build() {
 	SyntaxToken* next = lexer->nextToken();
 
 	while (next) {
 		if (!handleToken(next)) {
 			cerr << "Syntax error—fix ur code bro" << endl;
-			return;
+			delete next;
+			return false;
 		}
+		delete next;
 		next = lexer->nextToken();
 	}
+
+	return true;
 }
 
 void ParseNode::print() {
