@@ -29,6 +29,7 @@ int main(int argc, char *argv[]) {
 
 	ParseNode *ast = new ParseNode(&lexer);
 	if (!ast->build()) {
+		ast->print();
 		delete ast;
 		remove("preprocessed.cor");
 		return 1;
