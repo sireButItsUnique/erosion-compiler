@@ -15,6 +15,7 @@ private:
 	string source;
 	Flag flags;
 	unordered_map<string, TokenCode> declared;
+	vector<int> lineBreaks;
 	int pos;
 
 public:
@@ -29,4 +30,10 @@ public:
 	 * @return The next token to be parsed
 	 */
 	SyntaxToken* nextToken();
+
+	/**
+	 * @brief The the line number of the current token
+	 * @return The line number
+	 */
+	int getLinenum();
 };

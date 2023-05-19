@@ -3,43 +3,45 @@
 //remember to add flags after colon and "var" or "func"
 
 Lexer::Lexer(string source) {
-	this->pos = 0;
+	pos = 0;
 	this->source = "";
-	this->flags = Flag();
+	flags = Flag();
 
-	this->sourceFile.open(source);
+	sourceFile.open(source);
 	string buffer;
-	while (this->sourceFile >> buffer) {
+	int lastCharPos = 0; // Used to find chained newlines
+	while (sourceFile >> buffer) {
+		
 		this->source += buffer;
 		this->source += ' ';
 	}
 
-	this->sourceFile.close();
+	sourceFile.close();
 	return;
 }
 
 SyntaxToken* Lexer::nextToken() {
-	int& pos = this->pos;
-	if (pos >= this->source.size()) {
+	int& pos = pos;
+	if (pos >= source.size()) {
 		return nullptr;
 	}
 
-	while (this->source[pos] == ' ') {
+	while (source[pos] == ' ') {
 		pos++;
 	}
 
-	if (pos >= this->source.size()) {
+	if (pos >= source.size()) {
 		return nullptr;
 	}
 
-	string& source = this->source;
+	string& source = source;
 
 	//"of type" found
-	if (this->flags.funcDec || this->flags.varDec) {
+	if (flags.funcDec || flags.varDec) {
 		if (source[pos] != ':') {
 			return new SyntaxToken(pos, pos, "\":\" expected after declaring", lexicalError);
 		} else {
-			this->flags.funcDec ? this->flags.funcWasColoned() : this->flags.varWasColoned();
+			flags.funcDec ? flags.funcWasColoned() : flags.varWasColoned();
 			pos++;
 			return new SyntaxToken(pos - 1, 1, ":", ofType);
 		}
@@ -82,39 +84,39 @@ SyntaxToken* Lexer::nextToken() {
 
 		//check here which one it is
 		if (text == "func") { //declare func
-			this->flags.funcDec = true;
+			flags.funcDec = true;
 			return new SyntaxToken(start, end - start, text, declarator);
 		}
 
 		if (text == "var") { //declare var
-			this->flags.varDec = true;
+			flags.varDec = true;
 			return new SyntaxToken(start, end - start, text, declarator);
 		}
 
-		if (this->flags.funcColon) { //declare type
-			this->flags.funcWasTyped();
+		if (flags.funcColon) { //declare type
+			flags.funcWasTyped();
 			return new SyntaxToken(start, end - start, text, type);
 		}
 
-		if (this->flags.funcType) { //declare name
-			this->flags.clear();
-			this->declared[text] = TokenCode::function;
+		if (flags.funcType) { //declare name
+			flags.clear();
+			declared[text] = TokenCode::function;
 			return new SyntaxToken(start, end - start, text, TokenCode::function);
 		}
 
-		if (this->flags.varColon) { //declare type
-			this->flags.varWasTyped();
+		if (flags.varColon) { //declare type
+			flags.varWasTyped();
 			return new SyntaxToken(start, end - start, text, type);
 		}
 
-		if (this->flags.varType) { //declare name
-			this->flags.clear();
-			this->declared[text] = variable;
+		if (flags.varType) { //declare name
+			flags.clear();
+			declared[text] = variable;
 			return new SyntaxToken(start, end - start, text, variable);
 		}
 
-		if (this->declared.find(text) != this->declared.end()) { //already declared var/func
-			return new SyntaxToken(start, end - start, text, this->declared[text]);
+		if (declared.find(text) != declared.end()) { //already declared var/func
+			return new SyntaxToken(start, end - start, text, declared[text]);
 		}
 		return new SyntaxToken(start, end - start, text, keyword);
 	}
@@ -145,18 +147,18 @@ SyntaxToken* Lexer::nextToken() {
 
 		//semicolon
 		else if (source[pos] == ';') {
-			this->pos++;
+			pos++;
 			return new SyntaxToken(pos - 1, 1, ";", newLine);
 		}
 
 		else if (source[pos] == ':') {
-			if (this->flags.funcDec || this->flags.funcType) {
-				this->flags.funcWasColoned();
-			} else if (this->flags.varDec || this->flags.varType) {
-				this->flags.varWasColoned();
+			if (flags.funcDec || flags.funcType) {
+				flags.funcWasColoned();
+			} else if (flags.varDec || flags.varType) {
+				flags.varWasColoned();
 			}
 
-			this->pos++;
+			pos++;
 			return new SyntaxToken(pos - 1, 1, ":", ofType);
 		}
 
@@ -179,4 +181,8 @@ SyntaxToken* Lexer::nextToken() {
 			return new SyntaxToken(start, end - start, text, op);
 		}
 	}
+}
+
+int Lexer::getLinenum() {
+	
 }

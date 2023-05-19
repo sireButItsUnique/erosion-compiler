@@ -5,7 +5,7 @@ Preprocessor::Preprocessor(string fileName) {
 }
 
 void Preprocessor::process() {
-	fstream source(this->fileName);
+	fstream source(fileName);
 	fstream res;
 	string buffer;
 
@@ -22,7 +22,7 @@ void Preprocessor::process() {
 		}
 
 		if (!buffer.empty()) {
-			res << buffer << endl;
+			res << buffer << '\n';
 		}
 	}
 
