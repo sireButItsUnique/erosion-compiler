@@ -1,5 +1,5 @@
 #pragma once
- 
+
 #include <unordered_map>
 #include <vector>
 #include <string>
@@ -14,20 +14,25 @@ static const unordered_map<string, vector<vector<string>>> rules{
 			{"<declaration>"},
 			{"<return>"},
 			{"<func>"},
-			{"<conditional>"}
+			{"<conditional>"},
+			{"<assignment>"},
 		}
+	},
+	{"<statements>",
+		{{"<statement>"}},
 	},
 	{"<statement>",
 		{
 			{"<declaration>"},
 			{"<conditional>"},
 			{"<return>"},
+			{"<assignment>"},
 		}
 	},
 	{"<func>",
 		{
-			{"func", ":", "<type>", "<function>", "(", "<arg>", ")", "{", "<statement>", "}"},
-			{"func", ":", "<type>", "<function>", "(", ")", "{", "<statement>", "}"}
+			{"func", ":", "<type>", "<function>", "(", "<arg>", ")", "{", "<statements>", "}"},
+			{"func", ":", "<type>", "<function>", "(", ")", "{", "<statements>", "}"},
 		}
 	},
 	{"<arg>",
@@ -37,18 +42,19 @@ static const unordered_map<string, vector<vector<string>>> rules{
 			{"var", ":", "<type>", "<variable>", ", ", "<arg>"},
 		}
 	},
-	{"<conditional>", 
+	{"<conditional>",
 		{
 			{"<while>"},
 			{"<for>"},
 			{"<if>"},
 		}
 	},
-	{"<return>", 
+	{"<return>",
 		{
+			{"return", "<newLine>"},
 			{"return", "<literal>", "<newLine>"},
 			{"return", "<variable>", "<newLine>"},
-			{"return", "<function>", "(", "<arg>", ")", "<newLine>"}
+			{"return", "<function>", "(", "<arg>", ")", "<newLine>"},
 		}
 	},
 	{"<declaration>",
@@ -57,43 +63,63 @@ static const unordered_map<string, vector<vector<string>>> rules{
 			{"var", ":", "<type>", "<variable>", "=" ,"<literal>", "<newLine>"},
 		}
 	},
-	{"<if>", 
+	{"<if>",
 		{
-			{"if", "<expression>", "{", "<statement>", "}"}
+			{"if", "(", "<expression>", ")", "{", "<statements>", "}"},
 		}
 	},
-	{"<while>", 
+	{"<while>",
 		{
-			{"while", "<expression>", "{", "<statement>", "}"},
+			{"while", "(", "<expression>", ")", "{", "<statements>", "}"},
 		}
 	},
-	{"<for>", 
+	{"<for>",
 		{
-			{"for", "(", "<declaration>", "<expression>", "<statement>", ")" "{", "<statement>", "}"}, 
-			{"for", "(", "<declaration>", "in", "<variable>", ")" "{", "<statement>", "}"}, //"in" var must be array
-			{"for", "(", "<declaration>", "<declaration>", "in", "<variable>", ")", "{", "<statement>", "}"}
+			{"for", "(", "<declaration>", "<expression>", "<statement>", ")" "{", "<statements>", "}"},
+			{"for", "(", "<declaration>", "in", "<variable>", ")" "{", "<statements>", "}"}, //"in" var must be array
+			{"for", "(", "<declaration>", "<declaration>", "in", "<variable>", ")", "{", "<statements>", "}"},
 		}
 	},
-	{"<expression>", 
+	{"<assignment>",
 		{
-			{"(", "<expression>", ")"}, 
-			{"<variable>", "<op>", "<expression>"},
-			{"<variable>", "<op>", "<variable>"}, 
+			{"<variable>", "=", "<expression>", "<newLine>"},
+			{"<variable>", "=", "<variable>", "<newLine>"},
+			{"<variable>", "=", "<literal>", "<newLine>"},
+		}
+	},
+	{"<expression>",
+		{
+			{"(", "<expression>", ")"},
+			{"<unaryExpression>"},
+			{"<binaryExpression>"},
+		}
+	},
+	{"<unaryExpression>",
+		{
+			{"<op>", "<variable>"},
+			{"<op>", "<literal>"},
+			{"<op>", "<expression>"},
+		}
+	},
+	{"<binaryExpression>",
+		{
+			{"<variable>", "<op>", "<variable>"},
 			{"<variable>", "<op>", "<literal>"},
-			{"<literal>", "<op>", "<expression>"},
-			{"<literal>", "<op>", "<literal>"}, 
+			{"<literal>", "<op>", "<literal>"},
 			{"<literal>", "<op>", "<variable>"},
-			{"<expression>", "<op>", "<expression>"},
+			{"<literal>", "<op>", "<expression>"},
+			{"<variable>", "<op>", "<expression>"},
 			{"<expression>", "<op>", "<literal>"},
 			{"<expression>", "<op>", "<variable>"},
+			{"<expression>", "<op>", "<expression>"},
 		}
 	},
-	{"<literal>", 
+	{"<literal>",
 		{
-			{"<booleanLiteral>"}, 
-			{"<stringLiteral>"}, 
-			{"<floatingLiteral>"}, 
-			{"<integerLiteral>"}
+			{"<booleanLiteral>"},
+			{"<stringLiteral>"},
+			{"<floatingLiteral>"},
+			{"<integerLiteral>"},
 		}
 	},
 	{"<type>", {{"TERMINAL_OP"}}}, //note: deal with <type>:<type> later

@@ -1,34 +1,34 @@
 #include "flag.hpp"
 
 Flag::Flag() {
-	this->clear();
+	clear();
 }
 
 void Flag::clear() {
-	this->varType = false;
-	this->varDec = false;
-	this->varColon = false;
-	this->funcType = false;
-	this->funcDec = false;
-	this->funcColon = false;
+	varType = false;
+	varDec = false;
+	varColon = false;
+	funcType = false;
+	funcDec = false;
+	funcColon = false;
 }
 
 void Flag::funcWasColoned() {
-	this->funcDec = false;
-	this->funcColon = true;
+	funcDec = false;
+	funcColon = true;
 }
 
 void Flag::funcWasTyped() {
-	this->funcColon = false;
-	this->funcType = true;
+	funcColon = false;
+	funcType = true;
 }
 
 void Flag::varWasColoned() {
-	this->varDec = false;
-	this->varColon = true;
+	varDec = false;
+	varColon = true;
 }
 
 void Flag::varWasTyped() {
-	this->varColon = false;
-	this->varType = true;
+	varColon = false;
+	varType = true;
 }

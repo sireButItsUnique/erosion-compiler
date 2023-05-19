@@ -15,6 +15,8 @@ release: erosion
 erosion: $(OBJS)
 	$(CC) $(CFLAGS) -o erosion $(OBJS)
 
+SyntaxAnalysis/ParseNode.o: SyntaxAnalysis/grammar.hpp
+
 %.o: %.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 

@@ -34,14 +34,14 @@ const unordered_map<string, vector<vector<string>>> rules{
 			{"var", ":", "<type>", "<variable>", ", ", "<arg>"},
 		}
 	},
-	{"<conditional>", 
+	{"<conditional>",
 		{
 			{"<while>"},
 			{"<for>"},
 			{"<if>"},
 		}
 	},
-	{"<return>", 
+	{"<return>",
 		{
 			{"return", "<literal>", "<newLine>"},
 			{"return", "<variable>", "<newLine>"},
@@ -54,42 +54,42 @@ const unordered_map<string, vector<vector<string>>> rules{
 			{"var", ":", "<type>", "<variable>", "=" ,"<literal>", "<newLine>"},
 		}
 	},
-	{"<if>", 
+	{"<if>",
 		{
 			{"if", "<expression>", "{", "<statement>", "}"}
 		}
 	},
-	{"<while>", 
+	{"<while>",
 		{
 			{"while", "<expression>", "{", "<statement>", "}"},
 		}
 	},
-	{"<for>", 
+	{"<for>",
 		{
-			{"for", "(", "<declaration>", "<expression>", "<statement>", ")" "{", "<statement>", "}"}, 
+			{"for", "(", "<declaration>", "<expression>", "<statement>", ")" "{", "<statement>", "}"},
 			{"for", "(", "<declaration>", "in", "<variable>", ")" "{", "<statement>", "}"}, //"in" var must be array
 			{"for", "(", "<declaration>", "<declaration>", "in", "<variable>", ")", "{", "<statement>", "}"}
 		}
 	},
-	{"<expression>", 
+	{"<expression>",
 		{
-			{"(", "<expression>", ")"}, 
+			{"(", "<expression>", ")"},
 			{"<variable>", "<op>", "<expression>"},
-			{"<variable>", "<op>", "<variable>"}, 
+			{"<variable>", "<op>", "<variable>"},
 			{"<variable>", "<op>", "<literal>"},
 			{"<literal>", "<op>", "<expression>"},
-			{"<literal>", "<op>", "<literal>"}, 
+			{"<literal>", "<op>", "<literal>"},
 			{"<literal>", "<op>", "<variable>"},
 			{"<expression>", "<op>", "<expression>"},
 			{"<expression>", "<op>", "<literal>"},
 			{"<expression>", "<op>", "<variable>"},
 		}
 	},
-	{"<literal>", 
+	{"<literal>",
 		{
-			{"<booleanLiteral>"}, 
-			{"<stringLiteral>"}, 
-			{"<floatingLiteral>"}, 
+			{"<booleanLiteral>"},
+			{"<stringLiteral>"},
+			{"<floatingLiteral>"},
 			{"<integerLiteral>"}
 		}
 	},
