@@ -82,6 +82,8 @@ void ParseNode::updateWhitelist() {
 	}
 }
 
+// TODO: fix bug where it always checks against first variation
+// example: if you put `var: int a = 4;` it counts 5 complete tokens (up to =) and marks everything as complete
 void ParseNode::updateCompleteness() {
 
 	// whether all the children are complete
@@ -115,10 +117,12 @@ void ParseNode::updateCompleteness() {
 	return;   
 }
 
+// TODO: fix infinite recursion bug
 bool ParseNode::findPath(SyntaxToken* token, stack<int>& res, string type, bool first) {
 	
 	//setting correct whitelist if its not lost its virginity yet
 	vector<int>* tmpWhitelist = first ? &whitelist : new vector<int>;
+	
 	if (!first) {
 		for (int i = 0; i < rules.at(type).size(); i++) {
 			tmpWhitelist->push_back(i);
@@ -126,8 +130,10 @@ bool ParseNode::findPath(SyntaxToken* token, stack<int>& res, string type, bool 
 	}
 
 	int idx = children.size();
-	if (!first || this->type == "<program>")
+	
+	if (!first || this->type == "<program>") {
 		idx = 0;
+	}
 
 	for (const auto &variationIdx : *tmpWhitelist) {
 		if (variationIdx >= rules.at(type).size()) {
@@ -190,7 +196,7 @@ bool ParseNode::handleToken(SyntaxToken* token) {
 	if (children.empty() || children.back()->complete) {
 		
 		stack<int> validPath;
-		if (findPath(token, validPath, type)) {
+		if (findPath(token, validPath, type, true)) {
 			constructPath(token, validPath);
 			//updateWhitelist();
 			updateCompleteness();

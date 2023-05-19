@@ -72,7 +72,7 @@ private:
 	 * @param type the token type
 	 * @param first whether or not it's the first time being called
 	*/
-	bool findPath(SyntaxToken*, stack<int>&, string, bool = true);
+	bool findPath(SyntaxToken*, stack<int>&, string, bool);
 
 	/**
 	 * @brief recursively constructs a path based on path given + places token as leaf node
