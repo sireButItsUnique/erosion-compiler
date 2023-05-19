@@ -89,6 +89,20 @@ static const unordered_map<string, vector<vector<string>>> rules{
 	},
 	{"<expression>",
 		{
+			{"(", "<expression>", ")"},
+			{"<binaryExpression>"},
+			{"<unaryExpression>"},
+		}
+	},
+	{"<unaryExpression>",
+		{
+			{"<op>", "<variable>"},
+			{"<op>", "<literal>"},
+			{"<op>", "<expression>"},
+		}
+	},
+	{"<binaryExpression>",
+		{
 			{"<variable>", "<op>", "<variable>"},
 			{"<variable>", "<op>", "<literal>"},
 			{"<literal>", "<op>", "<literal>"},
@@ -98,7 +112,6 @@ static const unordered_map<string, vector<vector<string>>> rules{
 			{"<expression>", "<op>", "<literal>"},
 			{"<expression>", "<op>", "<variable>"},
 			{"<expression>", "<op>", "<expression>"},
-			{"(", "<expression>", ")"},
 		}
 	},
 	{"<literal>",

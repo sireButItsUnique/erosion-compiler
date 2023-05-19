@@ -88,9 +88,6 @@ void ParseNode::updateWhitelist() {
 	}
 }
 
-// TODO: fix bug where it always checks against first variation
-// example: if you put `var: int a = 4;` it counts 5 complete tokens (up to =) and marks everything as complete
-// probably due to updateWhitelist not being called, but that function had an issue which needs to be fixed first
 void ParseNode::updateCompleteness() {
 
 	// whether all the children are complete
@@ -98,13 +95,19 @@ void ParseNode::updateCompleteness() {
 		if (!child->complete) {
 
 			// update completeness value of each child
-			child->updateCompleteness();
+			// child->updateCompleteness();
 
 			// break out if the aforementioned child is still not complete
 			if (!child->complete) {
+				complete = false;
 				return;
 			}
 		}
+	}
+
+	if (type == "<program>" || type == "<statements>") {
+		complete = true;
+		return;
 	}
 
 	// whether it has the correct number of children/terms
@@ -116,6 +119,7 @@ void ParseNode::updateCompleteness() {
 		}
 	}
 	if (!passed) {
+		complete = false;
 		return;
 	}
 
@@ -196,11 +200,34 @@ bool ParseNode::handleToken(SyntaxToken* token) {
 	// create new node
 	if (children.empty() || children.back()->complete) {
 
-		// If the last node was <statements>, see if we can extend it
-		if (!children.empty() && children.back()->type == "<statements>") {
-			if (children.back()->handleToken(token)) {
-				updateCompleteness();
-				return true;
+		// Check if there is a completed child
+		if (!children.empty() && children.back()->complete) {
+			// If it is either of these types, we can try to extend it
+			if (children.back()->type == "<statements>") {
+				if (children.back()->handleToken(token)) {
+					updateCompleteness();
+					return true;
+				}
+			} else if (children.back()->type == "<expression>") {
+				if (token->type == op) {
+					ParseNode* tmp1 = children.back();
+					children.back() = new ParseNode(lexer, "<expression>");
+					ParseNode* tmp2 = new ParseNode(lexer, "<binaryExpression>");
+					children.back()->children.push_back(tmp2);
+					tmp2->children.push_back(tmp1);
+					tmp2->children.push_back(new ParseNode(lexer, "<op>", token->text));
+					return true;
+				} else if (token->text == "(") {
+					ParseNode* tmp1 = new ParseNode(lexer, "<expression>");
+					tmp1->children.push_back(new ParseNode(lexer, "<roundBracket>", "("));
+					ParseNode* tmp2 = children.back()->children.back();
+					if (tmp2->type != "<binaryExpression>" || tmp2->children.size() != 2) {
+						delete tmp1;
+						return false;
+					}
+					tmp2->children.push_back(tmp1);
+					return true;
+				}
 			}
 		}
 
@@ -222,6 +249,9 @@ bool ParseNode::handleToken(SyntaxToken* token) {
 		if (!children.back()->handleToken(token)) {
 			return false;
 		}
+		if (type != "<program>" && type != "<statements>") {
+			updateWhitelist();
+		}
 		updateCompleteness();
 		return true;
 	}
@@ -240,6 +270,11 @@ bool ParseNode::build() {
 		next = lexer->nextToken();
 	}
 
+	updateCompleteness();
+	if (!complete) {
+		cerr << "Syntax error—fix ur code bro" << endl;
+		return false;
+	}
 	return true;
 }
 
