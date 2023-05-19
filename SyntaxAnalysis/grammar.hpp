@@ -90,8 +90,8 @@ static const unordered_map<string, vector<vector<string>>> rules{
 	{"<expression>",
 		{
 			{"(", "<expression>", ")"},
-			{"<binaryExpression>"},
 			{"<unaryExpression>"},
+			{"<binaryExpression>"},
 		}
 	},
 	{"<unaryExpression>",
