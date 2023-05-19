@@ -95,7 +95,7 @@ void ParseNode::updateCompleteness() {
 		if (!child->complete) {
 
 			// update completeness value of each child
-			// child->updateCompleteness();
+			child->updateCompleteness();
 
 			// break out if the aforementioned child is still not complete
 			if (!child->complete) {

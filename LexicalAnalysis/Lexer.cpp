@@ -55,14 +55,15 @@ SyntaxToken* Lexer::nextToken() {
 
 	//string found
 	else if (source[pos] == '\"') {
+		string text;
 		int start = pos;
 		pos++;
-		while (source[pos] != '\"') {
+		while (source[pos] != '\"' || source[pos - 1] == '\\') {
 			pos++;
 		}
 		int end = pos;
 		pos++;
-		string text = source.substr(start, end - start + 1);
+		text = source.substr(start, end - start + 1);
 
 		return new SyntaxToken(start, end - start + 1, text, stringLiteral);
 	}

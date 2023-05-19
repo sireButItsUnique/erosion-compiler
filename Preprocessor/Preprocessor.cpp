@@ -10,13 +10,23 @@ stringstream* preprocess(string fileName) {
 	stringstream* res = new stringstream();
 	string buffer;
 
-	string tmp;
-
 	while (getline(source, buffer)) {
-		int commentPos = buffer.find("//");
-		if (commentPos != string::npos) {
-			buffer.erase(commentPos);
-		}
+		size_t commentPos = -1;
+		do {
+			commentPos = buffer.find("//", commentPos + 1);
+			size_t quoteCnt = 0;
+			for (auto it = buffer.begin(); it < buffer.begin() + commentPos; it++) {
+				if (it == buffer.begin() || *(it - 1) != '\\') {
+					if (*it == '\"') {
+						quoteCnt++;
+					}
+				}
+			}
+			if (commentPos != string::npos && quoteCnt % 2 == 0) {
+				buffer.erase(commentPos);
+				break;
+			}
+		} while (commentPos != string::npos);
 
 		if (!buffer.empty()) {
 			*res << buffer << '\n';
