@@ -5,13 +5,13 @@ ParseNode::ParseNode(Lexer* lexer) {
 	this->lexer = lexer;  
 
 	// variables for the lex token it represents
-	this->type = "<program>";
-	this->val = "";
+	type = "<program>";
+	val = "";
 
 	// variables to help during construction of tree
-	this->complete = false;
-	this->children = vector<ParseNode*>(0);
-	this->whitelist = {0, 1, 2, 3}; 
+	complete = false;
+	children = vector<ParseNode*>(0);
+	whitelist = {0, 1, 2, 3}; 
 }
 
 ParseNode::ParseNode(Lexer* lexer, string type) {
@@ -20,15 +20,15 @@ ParseNode::ParseNode(Lexer* lexer, string type) {
 
 	// variables for the lex token it represents
 	this->type = type;
-	this->val = "";
+	val = "";
 
 	// variables to help during construction of tree
-	this->complete = false;
-	this->children = vector<ParseNode*>(0);
-	this->whitelist = vector<int>(0);
+	complete = false;
+	children = vector<ParseNode*>(0);
+	whitelist = vector<int>(0);
 
 	for (int i = 0; i < rules.at(type).size(); i++) {
-		this->whitelist.push_back(i);
+		whitelist.push_back(i);
 	}
 }
 
@@ -41,42 +41,48 @@ ParseNode::ParseNode(Lexer* lexer, string type, string val) {
 	this->val = val;
 
 	// variables to help during construction of tree
-	this->complete = true;
-	this->children = vector<ParseNode*>(0);
-	this->whitelist = vector<int>(0); 
+	complete = true;
+	children = vector<ParseNode*>(0);
+	whitelist = vector<int>(0); 
 }
 
 ParseNode::~ParseNode() {
-	for (int i = 0; i < this->children.size(); i++) {
-		delete this->children[i];
+	for (int i = 0; i < children.size(); i++) {
+		delete children[i];
 	}
 }
 
 void ParseNode::updateWhitelist() {
 
 	// looping through each term currently under the node
-	for (int i = 0; i < this->children.size(); i++) {
+	for (int i = 0; i < children.size(); i++) {
 		
 		// looping through each term in the remaining whitelist for the current node
 		// in for (...;...;...) form in order to use std::vector.erase() method
-		for (int j = 0; j < this->whitelist.size(); j++) {
+		for (int j = whitelist.size() - 1; j >= 0; j--) {
 			
 			// current rule variation that's currently still considered valid in the whitelist
-			int variation = this->whitelist[j];
+			int variation = whitelist[j];
 			
 			// checking if there are more terms under the node than there are terms in the variation, if so remove
-			if (this->children.size() > rules.at(this->type)[variation].size()) {
-				this->whitelist.erase(this->whitelist.begin() + j);
-			} 
+			if (children.size() > rules.at(type)[variation].size()) {
+				whitelist.erase(whitelist.begin() + j);
+			}
 			
 			// test whether or not the terms under the node and the terms in the variation match
 			else {
-				string ruleType = rules.at(this->type)[variation][i];
-				string childType = this->children[i]->type;
+				string ruleType = rules.at(type)[variation][i];
+				string childType = children[i]->type;
 
-				if (ruleType != childType) {
-					this->whitelist.erase(this->whitelist.begin() + j);
-				} 
+				if (ruleType[0] != '<') {
+					if (ruleType != children[i]->val) {
+						whitelist.erase(whitelist.begin() + j);
+					}
+				} else {
+					if (ruleType != childType) {
+						whitelist.erase(whitelist.begin() + j);
+					}
+				}
 			}
 		}
 	}
@@ -114,17 +120,17 @@ void ParseNode::updateCompleteness() {
 	}
 
 	// marking as complete
-	complete = true; 
-	return;   
+	complete = true;
 }
 
 // TODO: fix infinite recursion bug
-bool ParseNode::findPath(SyntaxToken* token, stack<int>& res, string type, bool first) {
+bool ParseNode::findPath(SyntaxToken* token, stack<int>& res, string type, int depth) {
+	if (depth >= MAX_DEPTH) return false;
 	
 	//setting correct whitelist if its not lost its virginity yet
-	vector<int>* tmpWhitelist = first ? &whitelist : new vector<int>;
+	vector<int>* tmpWhitelist = !depth ? &whitelist : new vector<int>;
 	
-	if (!first) {
+	if (depth) {
 		for (int i = 0; i < rules.at(type).size(); i++) {
 			tmpWhitelist->push_back(i);
 		}
@@ -132,7 +138,7 @@ bool ParseNode::findPath(SyntaxToken* token, stack<int>& res, string type, bool 
 
 	int idx = children.size();
 	
-	if (!first || this->type == "<program>") {
+	if (depth || this->type == "<program>" || this->type == "<statements>") {
 		idx = 0;
 	}
 
@@ -143,7 +149,6 @@ bool ParseNode::findPath(SyntaxToken* token, stack<int>& res, string type, bool 
 
 		const vector<string>& variation = rules.at(type)[variationIdx];
 
-		// TODO: remove this line after fixing bug in updateWhitelist
 		if (idx >= variation.size()) {
 			continue;
 		}
@@ -151,29 +156,29 @@ bool ParseNode::findPath(SyntaxToken* token, stack<int>& res, string type, bool 
 		const string currTerm = variation[idx];
 
 		if (currTerm[0] == '<') {
-			if (findPath(token, res, currTerm, false)) {
+			if (findPath(token, res, currTerm, depth + 1)) {
 				res.push(variationIdx);
-				if (!first) {
+				if (depth) {
 					delete tmpWhitelist;
 				}
 				return true;
 			}
 		} else if (currTerm == "TERMINAL_OP") {
-			if (!first) {
+			if (!depth) {
 				delete tmpWhitelist;
 			}
-			return type.substr(1, type.size() - 2) == token->tokenCodeStringify();
+			return type == token->tokenCodeStringify();
 		} else {
 			if (currTerm == token->text) {
 				res.push(variationIdx);
-				if (!first) {
+				if (depth) {
 					delete tmpWhitelist;
 				}
 				return true;
 			}
 		}
 	}
-	if (!first) {
+	if (depth) {
 		delete tmpWhitelist;
 	}
 	return false;
@@ -196,11 +201,21 @@ bool ParseNode::handleToken(SyntaxToken* token) {
 	
 	// create new node
 	if (children.empty() || children.back()->complete) {
-		
+
+		// If the last node was <statements>, see if we can extend it
+		if (!children.empty() && children.back()->type == "<statements>") {
+			if (children.back()->handleToken(token)) {
+				updateCompleteness();
+				return true;
+			}
+		}
+
 		stack<int> validPath;
-		if (findPath(token, validPath, type, true)) {
+		if (findPath(token, validPath, type)) {
 			constructPath(token, validPath);
-			//updateWhitelist();
+			if (type != "<program>" && type != "<statements>") {
+				updateWhitelist();
+			}
 			updateCompleteness();
 			return true;
 		} else {
@@ -210,7 +225,11 @@ bool ParseNode::handleToken(SyntaxToken* token) {
 
 	// go into latest child node
 	else {
-		return children.back()->handleToken(token);
+		if (!children.back()->handleToken(token)) {
+			return false;
+		}
+		updateCompleteness();
+		return true;
 	}
 }
 
@@ -234,17 +253,17 @@ void ParseNode::print() {
 	for (int i = 0; i < 0; i++) {
 		std::cout << "  ";
 	}
-	cout << this->type;
-	if (this->val != "") {
-		cout << ": " << this->val;
+	cout << type;
+	if (val != "") {
+		cout << ": " << val;
 	}
 
-	if (this->complete) {
+	if (complete) {
 		cout << " (complete)";
 	}
 
 	cout << endl;
-	for (auto& c : this->children) {
+	for (auto& c : children) {
 		c->print(0 + 1);
 	}
 }
@@ -254,17 +273,17 @@ void ParseNode::print(int depth) {
 		cout << "  ";
 	}
 	
-	std::cout << this->type;
-	if (this->val != "") {
-		cout << ": " << this->val;
+	std::cout << type;
+	if (val != "") {
+		cout << ": " << val;
 	}
 
-	if (this->complete) {
+	if (complete) {
 		cout << " (complete)";
 	}
 
 	cout << endl;
-	for (auto& c : this->children) {
+	for (auto& c : children) {
 		c->print(depth + 1);
 	}
 

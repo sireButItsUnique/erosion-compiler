@@ -5,6 +5,9 @@
 #include "grammar.hpp"
 using namespace std;
 
+// Max recursion depth before it gives up
+#define MAX_DEPTH 50
+
 class ParseNode {
 public:
 	// actual lexer
@@ -70,9 +73,9 @@ private:
 	 * @param token the token that must find its place in the tree
 	 * @param path the resulting path that's acceptable for the token
 	 * @param type the token type
-	 * @param first whether or not it's the first time being called
+	 * @param depth how much remaining depth is allowed
 	*/
-	bool findPath(SyntaxToken*, stack<int>&, string, bool);
+	bool findPath(SyntaxToken*, stack<int>&, string, int = 0);
 
 	/**
 	 * @brief recursively constructs a path based on path given + places token as leaf node
