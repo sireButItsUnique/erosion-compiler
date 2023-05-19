@@ -84,6 +84,7 @@ void ParseNode::updateWhitelist() {
 
 // TODO: fix bug where it always checks against first variation
 // example: if you put `var: int a = 4;` it counts 5 complete tokens (up to =) and marks everything as complete
+// probably due to updateWhitelist not being called, but that function had an issue which needs to be fixed first
 void ParseNode::updateCompleteness() {
 
 	// whether all the children are complete
@@ -142,6 +143,7 @@ bool ParseNode::findPath(SyntaxToken* token, stack<int>& res, string type, bool 
 
 		const vector<string>& variation = rules.at(type)[variationIdx];
 
+		// TODO: remove this line after fixing bug in updateWhitelist
 		if (idx >= variation.size()) {
 			continue;
 		}
