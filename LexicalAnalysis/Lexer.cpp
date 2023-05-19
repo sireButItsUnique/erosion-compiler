@@ -27,13 +27,13 @@ SyntaxToken* Lexer::nextToken() {
 	while (this->source[pos] == ' ') {
 		pos++;
 	}
-	
+
 	if (pos >= this->source.size()) {
 		return nullptr;
 	}
 
 	string& source = this->source;
-	
+
 	//"of type" found
 	if (this->flags.funcDec || this->flags.varDec) {
 		if (source[pos] != ':') {
@@ -55,8 +55,8 @@ SyntaxToken* Lexer::nextToken() {
 		string text = source.substr(start, end - start);
 
 		return new SyntaxToken(start, end - start, text, integerLiteral);
-	} 
-	
+	}
+
 	//string found
 	else if (source[pos] == '\"') {
 		int start = pos;
@@ -126,32 +126,32 @@ SyntaxToken* Lexer::nextToken() {
 			pos++;
 			return new SyntaxToken(pos - 1, 1, string{source[pos - 1]}, curlyBracket);
 		}
-		
+
 		else if (source[pos] == '[' || source[pos] == ']') {
 			pos++;
 			return new SyntaxToken(pos - 1, 1, string{source[pos - 1]}, squareBracket);
 		}
-		
+
 		else if (source[pos] == '(' || source[pos] == ')') {
 			pos++;
 			return new SyntaxToken(pos - 1, 1, string{source[pos - 1]}, roundBracket);
-		} 
+		}
 
 		//comma
 		else if (source[pos] == ',') {
 			pos++;
 			return new SyntaxToken(pos - 1, 1, ",", separator);
 		}
-		
+
 		//semicolon
 		else if (source[pos] == ';') {
 			this->pos++;
 			return new SyntaxToken(pos - 1, 1, ";", newLine);
-		} 
+		}
 
 		else if (source[pos] == ':') {
 			if (this->flags.funcDec || this->flags.funcType) {
-				this->flags.funcWasColoned();    
+				this->flags.funcWasColoned();
 			} else if (this->flags.varDec || this->flags.varType) {
 				this->flags.varWasColoned();
 			}
@@ -159,14 +159,14 @@ SyntaxToken* Lexer::nextToken() {
 			this->pos++;
 			return new SyntaxToken(pos - 1, 1, ":", ofType);
 		}
-		
+
 		//operator
 		else {
 			int start = pos;
 			char curChar = source[pos];
 			while (
-				!isalnum(curChar) && 
-				!(curChar == ';' || curChar == ' ' || curChar == '\"') && 
+				!isalnum(curChar) &&
+				!(curChar == ';' || curChar == ' ' || curChar == '\"') &&
 				!(curChar == '{' || curChar == '}' || curChar == '[' || curChar == ']' || curChar == '(' || curChar == ')')
 			) {
 

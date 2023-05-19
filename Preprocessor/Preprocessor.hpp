@@ -8,7 +8,7 @@ using namespace std;
 class Preprocessor {
 public:
 	string fileName;
-	
+
 	/**
 	 * @brief Construct a new Preprocessor object
 	 * @param fileName The name of the file to be preprocessed

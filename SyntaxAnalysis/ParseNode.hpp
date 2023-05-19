@@ -24,7 +24,7 @@ public:
 	/**
 	 * @brief holds a vector of integers (indices of whitelisted types in each rule)
 	*/
-	vector<int> whitelist; 
+	vector<int> whitelist;
 
 	/**
 	 * @brief constructs a new ParseNode that will be the root
@@ -79,11 +79,11 @@ private:
 
 	/**
 	 * @brief recursively constructs a path based on path given + places token as leaf node
-	 * @param token 
+	 * @param token
 	 * @param path the path to be constructed
 	*/
 	void constructPath(SyntaxToken*, stack<int>&);
-	
+
 	/**
 	 * @brief updates whitelist based on the current children of the node
 	*/

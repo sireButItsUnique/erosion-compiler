@@ -14,9 +14,9 @@ private:
 	fstream sourceFile;
 	string source;
 	Flag flags;
-	unordered_map<string, TokenCode> declared; 
+	unordered_map<string, TokenCode> declared;
 	int pos;
-	
+
 public:
 	/**
 	 * @brief Construct a new Lexer object with the source file

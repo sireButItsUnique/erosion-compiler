@@ -20,10 +20,10 @@ void Preprocessor::process() {
 		if (commentPos != string::npos) {
 			buffer.erase(commentPos);
 		}
-		
+
 		if (!buffer.empty()) {
 			res << buffer << endl;
-		} 
+		}
 	}
 
 	source.close();

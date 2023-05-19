@@ -2,7 +2,7 @@
 
 ParseNode::ParseNode(Lexer* lexer) {
 	// actual lexer
-	this->lexer = lexer;  
+	this->lexer = lexer;
 
 	// variables for the lex token it represents
 	type = "<program>";
@@ -11,7 +11,7 @@ ParseNode::ParseNode(Lexer* lexer) {
 	// variables to help during construction of tree
 	complete = false;
 	children = vector<ParseNode*>(0);
-	whitelist = {0, 1, 2, 3}; 
+	whitelist = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 }
 
 ParseNode::ParseNode(Lexer* lexer, string type) {
@@ -43,7 +43,7 @@ ParseNode::ParseNode(Lexer* lexer, string type, string val) {
 	// variables to help during construction of tree
 	complete = true;
 	children = vector<ParseNode*>(0);
-	whitelist = vector<int>(0); 
+	whitelist = vector<int>(0);
 }
 
 ParseNode::~ParseNode() {
@@ -56,19 +56,19 @@ void ParseNode::updateWhitelist() {
 
 	// looping through each term currently under the node
 	for (int i = 0; i < children.size(); i++) {
-		
+
 		// looping through each term in the remaining whitelist for the current node
 		// in for (...;...;...) form in order to use std::vector.erase() method
 		for (int j = whitelist.size() - 1; j >= 0; j--) {
-			
+
 			// current rule variation that's currently still considered valid in the whitelist
 			int variation = whitelist[j];
-			
+
 			// checking if there are more terms under the node than there are terms in the variation, if so remove
 			if (children.size() > rules.at(type)[variation].size()) {
 				whitelist.erase(whitelist.begin() + j);
 			}
-			
+
 			// test whether or not the terms under the node and the terms in the variation match
 			else {
 				string ruleType = rules.at(type)[variation][i];
@@ -126,18 +126,12 @@ void ParseNode::updateCompleteness() {
 // TODO: fix infinite recursion bug
 bool ParseNode::findPath(SyntaxToken* token, stack<int>& res, string type, int depth) {
 	if (depth >= MAX_DEPTH) return false;
-	
+
 	//setting correct whitelist if its not lost its virginity yet
-	vector<int>* tmpWhitelist = !depth ? &whitelist : new vector<int>;
-	
-	if (depth) {
-		for (int i = 0; i < rules.at(type).size(); i++) {
-			tmpWhitelist->push_back(i);
-		}
-	}
+	vector<int>* tmpWhitelist = !depth ? &whitelist : new vector<int>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
 	int idx = children.size();
-	
+
 	if (depth || this->type == "<program>" || this->type == "<statements>") {
 		idx = 0;
 	}
@@ -198,7 +192,7 @@ void ParseNode::constructPath(SyntaxToken* token, stack<int>& path) {
 }
 
 bool ParseNode::handleToken(SyntaxToken* token) {
-	
+
 	// create new node
 	if (children.empty() || children.back()->complete) {
 
@@ -272,7 +266,7 @@ void ParseNode::print(int depth) {
 	for (int i = 0; i < depth; i++) {
 		cout << "  ";
 	}
-	
+
 	std::cout << type;
 	if (val != "") {
 		cout << ": " << val;
