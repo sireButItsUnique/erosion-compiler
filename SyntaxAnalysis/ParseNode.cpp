@@ -172,14 +172,14 @@ bool ParseNode::findPath(SyntaxToken* token, stack<int>& res, string type, bool 
 }
 
 void ParseNode::constructPath(SyntaxToken* token, stack<int>& path) {
-	// TODO: fix this section. The error is triggered by jsut a normal if statement
-	// the following line does not work properly to check if the node is terminal, so it thinks the expression is just (
-	// and tries to evaluate the next part (variable) as the { which obviously fails
-	if (rules.at(type)[path.top()][0][0] != '<') {
+	if (path.size() == 1) {
 		children.emplace_back(new ParseNode(lexer, token->tokenCodeStringify(), token->text));
 		return;
 	}
-	children.emplace_back(new ParseNode(lexer, rules.at(type)[path.top()][0]));
+	// If the variation has only 1 term, then we pick that one, otherwise we pick whichever node we are on
+	// prevents it from picking one past the last term instead of the first term of a new variation
+	int idx = min(children.size(), rules.at(type)[path.top()].size() - 1);
+	children.emplace_back(new ParseNode(lexer, rules.at(type)[path.top()][idx]));
 	path.pop();
 	children.back()->constructPath(token, path);
 }
