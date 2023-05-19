@@ -22,22 +22,22 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	Preprocessor preprocessor = Preprocessor(argv[1]);
-	preprocessor.process();
+	stringstream *str = preprocess(argv[1]);
+	if (str == nullptr) {
+		return 1;
+	}
 
-	Lexer lexer = Lexer("preprocessed.cor");
+	Lexer lexer = Lexer(str);
 
 	ParseNode *ast = new ParseNode(&lexer);
 	if (!ast->build()) {
 		ast->print();
 		delete ast;
-		remove("preprocessed.cor");
 		return 1;
 	}
 	ast->print();
 
 	delete ast;
 
-	remove("preprocessed.cor");
 	return 0;
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 
@@ -11,19 +12,20 @@ using namespace std;
 
 class Lexer {
 private:
-	fstream sourceFile;
 	string source;
+	stringstream *sourceFile;
 	Flag flags;
 	unordered_map<string, TokenCode> declared;
-	vector<int> lineBreaks;
 	int pos;
 
 public:
 	/**
 	 * @brief Construct a new Lexer object with the source file
-	 * @param source The source file name
+	 * @param sourceFile The stringstream containing the source file
 	 */
-	Lexer(string);
+	Lexer(stringstream*);
+
+	~Lexer();
 
 	/**
 	 * @brief Get the next token

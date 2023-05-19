@@ -2,39 +2,33 @@
 
 //remember to add flags after colon and "var" or "func"
 
-Lexer::Lexer(string source) {
+Lexer::Lexer(stringstream* sourceFile) {
 	pos = 0;
 	this->source = "";
+	this->sourceFile = sourceFile;
 	flags = Flag();
 
-	sourceFile.open(source);
 	string buffer;
-	int lastCharPos = 0; // Used to find chained newlines
-	while (sourceFile >> buffer) {
-		
-		this->source += buffer;
-		this->source += ' ';
+
+	while (*sourceFile >> buffer) {
+		this->source += buffer + (char)sourceFile->peek();
 	}
 
-	sourceFile.close();
 	return;
 }
 
 SyntaxToken* Lexer::nextToken() {
-	int& pos = pos;
 	if (pos >= source.size()) {
 		return nullptr;
 	}
 
-	while (source[pos] == ' ') {
+	while (source[pos] == ' ' || source[pos] == '\n') {
 		pos++;
 	}
 
 	if (pos >= source.size()) {
 		return nullptr;
 	}
-
-	string& source = source;
 
 	//"of type" found
 	if (flags.funcDec || flags.varDec) {
@@ -168,7 +162,7 @@ SyntaxToken* Lexer::nextToken() {
 			char curChar = source[pos];
 			while (
 				!isalnum(curChar) &&
-				!(curChar == ';' || curChar == ' ' || curChar == '\"') &&
+				!(curChar == ';' || curChar == ' ' || curChar == '\n' || curChar == '\"') &&
 				!(curChar == '{' || curChar == '}' || curChar == '[' || curChar == ']' || curChar == '(' || curChar == ')')
 			) {
 
@@ -184,5 +178,13 @@ SyntaxToken* Lexer::nextToken() {
 }
 
 int Lexer::getLinenum() {
-	
+	int cnt = count(source.begin(), source.begin() + max(pos - 1, 0), '\n');
+	if (cnt == string::npos) {
+		return 1;
+	}
+	return cnt + 1;
+}
+
+Lexer::~Lexer() {
+	delete sourceFile;
 }

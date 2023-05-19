@@ -162,7 +162,7 @@ bool ParseNode::findPath(SyntaxToken* token, stack<int>& res, string type, int d
 				return true;
 			}
 		} else if (currTerm == "TERMINAL_OP") {
-			if (!depth) {
+			if (depth) {
 				delete tmpWhitelist;
 			}
 			return type == token->tokenCodeStringify();
@@ -262,7 +262,7 @@ bool ParseNode::build() {
 
 	while (next) {
 		if (!handleToken(next)) {
-			cerr << "Syntax error—fix ur code bro" << endl;
+			cerr << "Syntax error line " << lexer->getLinenum() << "—fix ur code bro" << endl;
 			delete next;
 			return false;
 		}
@@ -272,7 +272,7 @@ bool ParseNode::build() {
 
 	updateCompleteness();
 	if (!complete) {
-		cerr << "Syntax error—fix ur code bro" << endl;
+		cerr << "Syntax error line " << lexer->getLinenum() << "—fix ur code bro" << endl;
 		return false;
 	}
 	return true;

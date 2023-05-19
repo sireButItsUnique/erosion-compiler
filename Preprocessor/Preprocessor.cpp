@@ -1,19 +1,16 @@
 #include "Preprocessor.hpp"
 
-Preprocessor::Preprocessor(string fileName) {
-	this->fileName = fileName;
-}
-
-void Preprocessor::process() {
+stringstream* preprocess(string fileName) {
 	fstream source(fileName);
-	fstream res;
+	if (!source) {
+		cerr << "Invalid file" << endl;
+		return nullptr;
+	}
+
+	stringstream* res = new stringstream();
 	string buffer;
 
-	res.open("preprocessed.cor", ios::out);
-	if (!source) {
-		cout << "Invalid file\n";
-		return;
-	}
+	string tmp;
 
 	while (getline(source, buffer)) {
 		int commentPos = buffer.find("//");
@@ -22,10 +19,11 @@ void Preprocessor::process() {
 		}
 
 		if (!buffer.empty()) {
-			res << buffer << '\n';
+			*res << buffer << '\n';
 		}
 	}
 
 	source.close();
-	res.close();
+
+	return res;
 }

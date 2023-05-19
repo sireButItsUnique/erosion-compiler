@@ -2,21 +2,13 @@
 
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <string>
 using namespace std;
 
-class Preprocessor {
-public:
-	string fileName;
-
-	/**
-	 * @brief Construct a new Preprocessor object
-	 * @param fileName The name of the file to be preprocessed
-	 */
-	Preprocessor(string);
-
-	/**
-	 * @brief Preprocess the file
-	 */
-	void process();
-};
+/**
+ * @brief Preprocess the file
+ * @param fileName The name of the file to preprocess
+ * @return A stringstream containing the preprocessed file
+ */
+stringstream* preprocess(string);
