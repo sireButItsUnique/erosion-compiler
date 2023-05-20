@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fstream>
+#include <list>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -16,6 +17,7 @@ private:
 	stringstream *sourceFile;
 	Flag flags;
 	unordered_map<string, TokenCode> declared;
+	list<SyntaxToken*> expressionTokens;
 	int pos;
 
 public:
@@ -27,15 +29,28 @@ public:
 
 	~Lexer();
 
+	//for expressifier: peek token until closingCnt > openingCnt || semicolon found
+	//then instead of asking lexer for next token ask expressifier for next token
 	/**
-	 * @brief Get the next token
+	 * @brief Get the next token, if there are expression tokens waiting it will prioritize those instead
 	 * @return The next token to be parsed
 	 */
-	SyntaxToken* nextToken();
+	SyntaxToken* nextToken(bool = false);
+
+	/**
+	 * @brief Get the next token without moving where you are
+	 * @return Stop peeking you pervert
+	 */
+	SyntaxToken* peekToken();
+
+	/**
+	 * @brief Orders the following tokens for order of operations; stores said tokens in expessionTokens to be given in the correct order when nextToken is called
+	*/
+	void expressify();
 
 	/**
 	 * @brief The the line number of the current token
 	 * @return The line number
 	 */
-	int getLinenum();
+	int getLineNum();
 };

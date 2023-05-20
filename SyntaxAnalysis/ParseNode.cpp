@@ -93,6 +93,8 @@ void ParseNode::updateWhitelist() {
 
 void ParseNode::updateCompleteness() {
 
+	updateWhitelist();
+
 	// whether all the children are complete
 	for (const auto &child : children) {
 		if (!child->complete) {
@@ -244,7 +246,6 @@ bool ParseNode::handleToken(SyntaxToken* token) {
 		stack<int> validPath;
 		if (findPath(token, validPath, type)) {
 			constructPath(token, validPath);
-			updateWhitelist();
 			updateCompleteness();
 			return true;
 		} else {
@@ -265,7 +266,6 @@ bool ParseNode::handleToken(SyntaxToken* token) {
 		if (!children.back()->handleToken(token)) {
 			return false;
 		}
-		updateWhitelist();
 		updateCompleteness();
 		return true;
 	}
@@ -276,7 +276,7 @@ bool ParseNode::build() {
 
 	while (next) {
 		if (!handleToken(next)) {
-			cerr << "Syntax error line " << lexer->getLinenum() << "—fix ur code bro" << endl;
+			cerr << "Syntax error line " << lexer->getLineNum() << "—fix ur code bro" << endl;
 			delete next;
 			return false;
 		}
@@ -286,7 +286,7 @@ bool ParseNode::build() {
 
 	updateCompleteness();
 	if (!complete) {
-		cerr << "Syntax error line " << lexer->getLinenum() << "—fix ur code bro" << endl;
+		cerr << "Syntax error line " << lexer->getLineNum() << "—fix ur code bro" << endl;
 		return false;
 	}
 	return true;

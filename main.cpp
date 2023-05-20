@@ -29,6 +29,8 @@ int main(int argc, char *argv[]) {
 
 	Lexer lexer = Lexer(str);
 
+	lexer.expressify();
+
 	ParseNode *ast = new ParseNode(&lexer);
 	if (!ast->build()) {
 		ast->print();

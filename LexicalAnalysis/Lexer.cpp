@@ -1,7 +1,5 @@
 #include "Lexer.hpp"
 
-//remember to add flags after colon and "var" or "func"
-
 Lexer::Lexer(stringstream* sourceFile) {
 	pos = 0;
 	this->source = "";
@@ -17,7 +15,13 @@ Lexer::Lexer(stringstream* sourceFile) {
 	return;
 }
 
-SyntaxToken* Lexer::nextToken() {
+SyntaxToken* Lexer::nextToken(bool internal) {
+	if (!internal && !expressionTokens.empty()) {
+		SyntaxToken* token = expressionTokens.front();
+		expressionTokens.pop_front();
+		return token;
+	}
+
 	if (pos >= source.size()) {
 		return nullptr;
 	}
@@ -78,6 +82,10 @@ SyntaxToken* Lexer::nextToken() {
 		string text = source.substr(start, end - start);
 
 		//check here which one it is
+		if (text == "true" || text == "false") {
+			return new SyntaxToken(start, end - start, text, booleanLiteral);
+		}
+
 		if (text == "func") { //declare func
 			flags.funcDec = true;
 			return new SyntaxToken(start, end - start, text, declarator);
@@ -95,8 +103,8 @@ SyntaxToken* Lexer::nextToken() {
 
 		if (flags.funcType) { //declare name
 			flags.clear();
-			declared[text] = TokenCode::function;
-			return new SyntaxToken(start, end - start, text, TokenCode::function);
+			declared[text] = function;
+			return new SyntaxToken(start, end - start, text, function);
 		}
 
 		if (flags.varColon) { //declare type
@@ -178,7 +186,7 @@ SyntaxToken* Lexer::nextToken() {
 	}
 }
 
-int Lexer::getLinenum() {
+int Lexer::getLineNum() {
 	int cnt = count(source.begin(), source.begin() + max(pos - 1, 0), '\n');
 	if (cnt == string::npos) {
 		return 1;

@@ -38,6 +38,12 @@ public:
 	TokenCode type;
 
 	/**
+	 * @brief Stringify the token
+	 * @return The stringified token
+	 */
+	string tokenCodeStringify();
+
+	/**
 	 * @brief Construct a new Syntax Token object
 	 * @param start Start position of the token
 	 * @param len Length of the token
@@ -46,9 +52,4 @@ public:
 	 */
 	SyntaxToken(int, int, string, TokenCode);
 
-	/**
-	 * @brief Stringify the token
-	 * @return The stringified token
-	 */
-	string tokenCodeStringify();
 };

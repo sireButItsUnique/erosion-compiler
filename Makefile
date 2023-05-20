@@ -17,7 +17,7 @@ erosion: $(OBJS)
 
 SyntaxAnalysis/ParseNode.o: SyntaxAnalysis/grammar.hpp
 
-%.o: %.cpp
+%.o: %.cpp Makefile
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:

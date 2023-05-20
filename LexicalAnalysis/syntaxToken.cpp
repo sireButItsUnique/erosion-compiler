@@ -1,16 +1,7 @@
 #include "syntaxToken.hpp"
 
-SyntaxToken::SyntaxToken(int start, int len, string text, TokenCode type) {
-		cout << "startPos: " << start << ", Length: " << len << ", Text: " << text << ", of type: " << type << endl;
-		this->start = start;
-		this->length = len;
-		this->type = type;
-		this->text = text;
-		return;
-}
-
 string SyntaxToken::tokenCodeStringify() {
-	vector<string> tokenCodeStringify = {
+	vector<string> _tokenCodeStringify = {
 		"<op>",
 		"<keyword>",
 		"<type>",
@@ -29,5 +20,15 @@ string SyntaxToken::tokenCodeStringify() {
 		"<newLine>",
 		"<lexicalError>",
 	};
-	return tokenCodeStringify[this->type];
+	return _tokenCodeStringify[type];
 }
+
+SyntaxToken::SyntaxToken(int start, int len, string text, TokenCode type) {
+		this->start = start;
+		this->length = len;
+		this->type = type;
+		this->text = text;
+		// cout << "startPos: " << start << ", Length: " << len << ", Text: " << text << ", of type: " << tokenCodeStringify() << endl;
+		return;
+}
+
