@@ -16,6 +16,7 @@ static const unordered_map<string, vector<vector<string>>> rules{
 			{"<func>"},
 			{"<conditional>"},
 			{"<assignment>"},
+			{"<functionCall>", "<newLine>"},
 		}
 	},
 	{"<statements>",
@@ -27,19 +28,32 @@ static const unordered_map<string, vector<vector<string>>> rules{
 			{"<conditional>"},
 			{"<return>"},
 			{"<assignment>"},
+			{"<functionCall>", "<newLine>"},
 		}
 	},
 	{"<func>",
 		{
-			{"func", ":", "<type>", "<function>", "(", "<arg>", ")", "{", "<statements>", "}"},
+			{"func", ":", "<type>", "<function>", "(", "<argDefs>", ")", "{", "<statements>", "}"},
 			{"func", ":", "<type>", "<function>", "(", ")", "{", "<statements>", "}"},
 		}
 	},
+	{"<args>",
+		{{"<arg>"}},
+	},
 	{"<arg>",
+		{
+			{"<variable>"},
+			{"<literal>"},
+			{"<expression>"},
+		}
+	},
+	{"<argDefs>",
+		{{"<argDef>"}},
+	},
+	{"<argDef>",
 		{
 			{"var", ":", "<type>", "<variable>"},
 			{"var", ":", "<type>", "<variable>", "=" ,"<literal>"},
-			{"var", ":", "<type>", "<variable>", ", ", "<arg>"},
 		}
 	},
 	{"<conditional>",
@@ -54,7 +68,7 @@ static const unordered_map<string, vector<vector<string>>> rules{
 			{"return", "<newLine>"},
 			{"return", "<literal>", "<newLine>"},
 			{"return", "<variable>", "<newLine>"},
-			{"return", "<function>", "(", "<arg>", ")", "<newLine>"},
+			{"return", "<expression>", "<newLine>"},
 		}
 	},
 	{"<declaration>",
@@ -90,6 +104,7 @@ static const unordered_map<string, vector<vector<string>>> rules{
 	{"<expression>",
 		{
 			{"(", "<expression>", ")"},
+			{"<functionCall>"},
 			{"<unaryExpression>"},
 			{"<binaryExpression>"},
 		}
@@ -112,6 +127,12 @@ static const unordered_map<string, vector<vector<string>>> rules{
 			{"<expression>", "<op>", "<literal>"},
 			{"<expression>", "<op>", "<variable>"},
 			{"<expression>", "<op>", "<expression>"},
+		}
+	},
+	{"<functionCall>",
+		{
+			{"<function>", "(", ")"},
+			{"<function>", "(", "<args>", ")"},
 		}
 	},
 	{"<literal>",

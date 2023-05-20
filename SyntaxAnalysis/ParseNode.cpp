@@ -53,6 +53,9 @@ ParseNode::~ParseNode() {
 }
 
 void ParseNode::updateWhitelist() {
+	if (type == "<program>" || type == "<statements>" || type == "<args>" || type == "<argDefs>") {
+		return;
+	}
 
 	// looping through each term currently under the node
 	for (int i = 0; i < children.size(); i++) {
@@ -127,7 +130,6 @@ void ParseNode::updateCompleteness() {
 	complete = true;
 }
 
-// TODO: fix infinite recursion bug
 bool ParseNode::findPath(SyntaxToken* token, stack<int>& res, string type, int depth) {
 	if (depth >= MAX_DEPTH) return false;
 
@@ -136,7 +138,7 @@ bool ParseNode::findPath(SyntaxToken* token, stack<int>& res, string type, int d
 
 	int idx = children.size();
 
-	if (depth || this->type == "<program>" || this->type == "<statements>") {
+	if (depth || this->type == "<program>" || this->type == "<statements>" || this->type == "<args>" || this->type == "<argDefs>") {
 		idx = 0;
 	}
 
@@ -203,12 +205,13 @@ bool ParseNode::handleToken(SyntaxToken* token) {
 		// Check if there is a completed child
 		if (!children.empty() && children.back()->complete) {
 			// If it is either of these types, we can try to extend it
-			if (children.back()->type == "<statements>") {
+			string type = children.back()->type;
+			if (type == "<statements>") {
 				if (children.back()->handleToken(token)) {
 					updateCompleteness();
 					return true;
 				}
-			} else if (children.back()->type == "<expression>") {
+			} else if (type == "<expression>") {
 				if (token->type == op) {
 					ParseNode* tmp1 = children.back();
 					children.back() = new ParseNode(lexer, "<expression>");
@@ -228,15 +231,20 @@ bool ParseNode::handleToken(SyntaxToken* token) {
 					tmp2->children.push_back(tmp1);
 					return true;
 				}
+			} else if (type == "<args>" || type == "<argDefs>") {
+				if (token->text == ",") {
+					if (children.back()->handleToken(lexer->nextToken())) {
+						updateCompleteness();
+						return true;
+					}
+				}
 			}
 		}
 
 		stack<int> validPath;
 		if (findPath(token, validPath, type)) {
 			constructPath(token, validPath);
-			if (type != "<program>" && type != "<statements>") {
-				updateWhitelist();
-			}
+			updateWhitelist();
 			updateCompleteness();
 			return true;
 		} else {
@@ -246,12 +254,18 @@ bool ParseNode::handleToken(SyntaxToken* token) {
 
 	// go into latest child node
 	else {
+		if (children.back()->type == "<args>" || children.back()->type == "<argDefs>") {
+			if (token->text == ")") {
+				children.back()->complete = true;
+				children.push_back(new ParseNode(lexer, "<roundBracket>", ")"));
+				updateCompleteness();
+				return true;
+			}
+		}
 		if (!children.back()->handleToken(token)) {
 			return false;
 		}
-		if (type != "<program>" && type != "<statements>") {
-			updateWhitelist();
-		}
+		updateWhitelist();
 		updateCompleteness();
 		return true;
 	}
