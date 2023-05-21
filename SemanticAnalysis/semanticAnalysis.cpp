@@ -208,9 +208,3 @@ void Diagnoser::clean(ParseNode* root) {
 		}
 	}
 }
-
-// .Recurse:
-// 	Check for nonsense
-// 	Remove unneeded stuff
-// 	Hoist
-// jmp .Recurse
