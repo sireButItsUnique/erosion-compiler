@@ -91,16 +91,21 @@ bool Diagnoser::check(ParseNode* root) {
 				}
 				else if (child->children[0]->type == "<literal>") {
 					string type = child->children[0]->children[0]->type;
+
+					// should be string but isnt
 					if (type == "<booleanLiteral>" && argTypes[i] == "string") {
-						error = "Argument \"" + child->children[0]->val + "\" is of type \"bool\" but should be of type \"string\"";
+						error = "Argument \"" + child->children[0]->children[0]->val + "\" is of type \"bool\" but should be of type \"string\"";
 						return false;
 					}
+
+					else if (type == "<integerLiteral>" && argTypes[i] == "string") {
+						error = "Argument \"" + child->children[0]->children[0]->val + "\" is of type \"int\" but should be of type \"string\"";
+						return false;
+					}
+
+					// got string but it shouldn't be
 					else if (type == "<stringLiteral>" && argTypes[i] != "string") {
-						error = "Argument \"" + child->children[0]->val + "\" is of type \"string\" but should be of type \"" + argTypes[i] + "\"";
-						return false;
-					}
-					else if (type == "<integerLiteral>" && argTypes[i] == "int") {
-						error = "Argument \"" + child->children[0]->val + "\" is of type \"int\" but should be of type \"string\"";
+						error = "Argument " + child->children[0]->children[0]->val + " is of type \"string\" but should be of type \"" + argTypes[i] + "\"";
 						return false;
 					}
 				}

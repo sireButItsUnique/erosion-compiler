@@ -29,6 +29,6 @@ SyntaxToken::SyntaxToken(int start, int len, string text, TokenCode type, int li
 		this->type = type;
 		this->text = text;
 		this->line = lineNum;
-		cout << "Line: " << lineNum << ", startPos: " << start << ", Length: " << len << ", Text: " << text << ", of type: " << tokenCodeStringify() << endl;
+		// cout << "Line: " << lineNum << ", startPos: " << start << ", Length: " << len << ", Text: " << text << ", of type: " << tokenCodeStringify() << endl;
 		return;
 }
