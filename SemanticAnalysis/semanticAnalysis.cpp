@@ -175,16 +175,14 @@ void Diagnoser::hoist(ParseNode* root) {
 	for (int i = 0; i < root->children.size(); i++) {
 		ParseNode* child = root->children[i];
 
-		if (child->type == "<statements>" || child->type == "<args>" || child->type == "<argDefs>" || child->type == "<conditional>" || child->type == "<expression>" || child->type == "<statement>") {
+		if (child->type == "<statements>" || child->type == "<args>" || child->type == "<argDefs>" || child->type == "<conditional>" || child->type == "<expression>" || child->type == "<statement>" || child->type == "<declaration>") {
 
 			// erase the child from the root
 			root->children.erase(root->children.begin() + i);
 
 			// move everything from the child that was just erased into the root
 			root->children.insert(root->children.begin() + i, child->children.begin(), child->children.end());
-			if (i > 0) {
-				i--;
-			}
+			i--;
 		}
 	}
 }
@@ -194,6 +192,11 @@ void Diagnoser::clean(ParseNode* root) {
 		ParseNode* child = root->children[i];
 
 		if (child->val == ";" || (child->val.size() && rules.find(child->type) == rules.end())) {
+			root->children.erase(root->children.begin() + i);
+			i--;
+		}
+
+		if (child->type == "<keyword>") {
 			root->children.erase(root->children.begin() + i);
 			i--;
 		}

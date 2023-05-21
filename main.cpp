@@ -40,10 +40,6 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	cout << "\x1b[31m";
-	ast->print();
-	cout << "\x1b[0m";
-
 	Diagnoser diagnoser = Diagnoser(); 
 	if (!diagnoser.diagnose(ast)) {
 		cerr << diagnoser.error << endl;
@@ -54,7 +50,8 @@ int main(int argc, char *argv[]) {
 	ast->print();
 
 	IRGenerator irGen = IRGenerator();
-	vector<string> ir = irGen.generateIR(ast);
+	vector<string> ir;
+	irGen.generateIR(ast, ir);
 	for (auto line : ir) {
 		cout << line << endl;
 	}

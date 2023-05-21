@@ -8,12 +8,14 @@ private:
 	 * @brief .first is the variable name, and .second is the size of that variable
 	 */
 	stack<pair<string, int>> st;
+	int labelCnt = 0;
 
 public:
 	/**
 	 * @brief generates intermediary representation of the program
-	 * @param root 
-	 * @return vector<string> 
+	 * @param root the root of the tree
+	 * @param code output vector representing our code
+	 * @return how much stuff got pushed
 	 */
-	vector<string> generateIR(ParseNode *root);
+	int generateIR(ParseNode *root, vector<string>&);
 };
