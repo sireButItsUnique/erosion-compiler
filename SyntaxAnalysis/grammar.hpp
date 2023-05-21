@@ -79,7 +79,7 @@ static const unordered_map<string, vector<vector<string>>> rules{
 	},
 	{"<for>",
 		{
-			{"for", "(", "<declaration>", "<expression>", "<statement>", ")" "{", "<statements>", "}"},
+			{"for", "(", "<declaration>", "<expression>", "<newLine>", "<statement>", ")", "{", "<statements>", "}"},
 			{"for", "(", "<declaration>", "in", "<variable>", ")" "{", "<statements>", "}"}, //"in" var must be array
 			{"for", "(", "<declaration>", ",", "<declaration>", "in", "<variable>", ")", "{", "<statements>", "}"},
 		}

@@ -242,6 +242,12 @@ bool ParseNode::handleToken(SyntaxToken* token) {
 						return true;
 					}
 				}
+			} else if (type == "<def>") {
+				if (token->text == "=") {
+					children.back()->children.push_back(new ParseNode(lexer, "<op>", "=", token->line));
+					children.back()->complete = false;
+					return true;
+				}
 			}
 		}
 
