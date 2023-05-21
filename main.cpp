@@ -1,3 +1,4 @@
+#include "./IntermediateCodeGenerator/intermediateGen.hpp"
 #include "./LexicalAnalysis/Lexer.hpp"
 #include "./Preprocessor/Preprocessor.hpp"
 #include "./SyntaxAnalysis/ParseNode.hpp"
@@ -46,10 +47,18 @@ int main(int argc, char *argv[]) {
 	Diagnoser diagnoser = Diagnoser(); 
 	if (!diagnoser.diagnose(ast)) {
 		cerr << diagnoser.error << endl;
+		ast->print();
 		return 1;
 	}
 
 	ast->print();
+
+	IRGenerator irGen = IRGenerator();
+	vector<string> ir = irGen.generateIR(ast);
+	for (auto line : ir) {
+		cout << line << endl;
+	}
+
 	delete ast;
 
 	return 0;

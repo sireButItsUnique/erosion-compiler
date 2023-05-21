@@ -11,12 +11,8 @@ using namespace std;
 static const unordered_map<string, vector<vector<string>>> rules{
 	{"<program>",
 		{
-			{"<declaration>"},
-			{"<return>"},
 			{"<func>"},
-			{"<conditional>"},
-			{"<assignment>"},
-			{"<functionCall>", "<newLine>"},
+			{"<statements>"},
 		}
 	},
 	{"<statements>",

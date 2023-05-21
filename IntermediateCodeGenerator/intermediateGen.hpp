@@ -1,17 +1,19 @@
 #pragma once
 #include "../SyntaxAnalysis/ParseNode.hpp"
 
-class IntermediateCodeGenerator {
+class IRGenerator {
 private:
-    // pair:
-    // string is the variable name, etc. and int is the size of that variable
-	stack<pair<string, int>> s;
+	/**
+	 * @brief stack of variables and their sizes
+	 * @brief .first is the variable name, and .second is the size of that variable
+	 */
+	stack<pair<string, int>> st;
 
 public:
 	/**
-	 * @brief 
+	 * @brief generates intermediary representation of the program
 	 * @param root 
 	 * @return vector<string> 
 	 */
-	vector<string> intermediateGen(ParseNode *root);
+	vector<string> generateIR(ParseNode *root);
 };

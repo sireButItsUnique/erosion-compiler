@@ -1,7 +1,9 @@
 #include "intermediateGen.hpp"
 
-vector<string> intermediateGen(ParseNode *root) {
-	vector<string> intermediateCode;
+vector<string> IRGenerator::generateIR(ParseNode *root) {
+	vector<string> code;
+
 	
-	return intermediateCode;
+	
+	return code;
 }

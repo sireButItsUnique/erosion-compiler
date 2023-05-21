@@ -72,6 +72,8 @@ bool Diagnoser::check(ParseNode* root) {
 
 		ParseNode* argDefs = root->children[5]; // argument definitions
 
+		args[name] = {};
+
 		if (argDefs->type == "<argDefs>") {
 			for (auto child : argDefs->children) {
 				args[name].push_back(child->children[2]->val);
@@ -166,20 +168,6 @@ bool Diagnoser::check(ParseNode* root) {
 		}
 	}
 
-	else if (root->type == "<variable>") {
-		if (queryVar(root->val).empty()) {
-			error = "Variable \"" + root->val + "\" is undefined";
-			return false;
-		}
-	}
-
-	else if (root->type == "<function>") {
-		if (!args.count(root->val)) {
-			error = "Function \"" + root->val + "\" is undefined";
-			return false;
-		}
-	}
-
 	return true;
 }
 
@@ -187,13 +175,16 @@ void Diagnoser::hoist(ParseNode* root) {
 	for (int i = 0; i < root->children.size(); i++) {
 		ParseNode* child = root->children[i];
 
-		if (child->type == "<statements>" || child->type == "<args>" || child->type == "<argDefs>" || child->type == "<conditional>" || child->type == "<expression>") {
+		if (child->type == "<statements>" || child->type == "<args>" || child->type == "<argDefs>" || child->type == "<conditional>" || child->type == "<expression>" || child->type == "<statement>") {
 
 			// erase the child from the root
 			root->children.erase(root->children.begin() + i);
 
 			// move everything from the child that was just erased into the root
 			root->children.insert(root->children.begin() + i, child->children.begin(), child->children.end());
+			if (i > 0) {
+				i--;
+			}
 		}
 	}
 }
