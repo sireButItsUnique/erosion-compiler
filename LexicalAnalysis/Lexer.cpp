@@ -2,6 +2,7 @@
 
 Lexer::Lexer(stringstream* sourceFile) {
 	pos = 0;
+	lineNum = 1;
 	this->source = "";
 	this->sourceFile = sourceFile;
 	flags = Flag();
@@ -12,11 +13,12 @@ Lexer::Lexer(stringstream* sourceFile) {
 		this->source += buffer + (char)sourceFile->peek();
 	}
 
+
 	return;
 }
 
-SyntaxToken* Lexer::nextToken(bool internal) {
-	if (!internal && !expressionTokens.empty()) {
+SyntaxToken* Lexer::nextToken(bool expressifying) {
+	if (!expressifying && !expressionTokens.empty()) {
 		SyntaxToken* token = expressionTokens.front();
 		expressionTokens.pop_front();
 		return token;
@@ -27,6 +29,9 @@ SyntaxToken* Lexer::nextToken(bool internal) {
 	}
 
 	while (source[pos] == ' ' || source[pos] == '\n') {
+		if (source[pos] == '\n') {
+			lineNum++;
+		}
 		pos++;
 	}
 
@@ -34,14 +39,20 @@ SyntaxToken* Lexer::nextToken(bool internal) {
 		return nullptr;
 	}
 
+	if (source.substr(pos, 3) == "爨") {
+		pos += 3;
+		lineNum = stoi(source.substr(pos, source.find(' ', pos) - pos));
+		pos = source.find(' ', pos) + 1;
+	}
+
 	//"of type" found
 	if (flags.funcDec || flags.varDec) {
 		if (source[pos] != ':') {
-			return new SyntaxToken(pos, pos, "\":\" expected after declaring", lexicalError);
+			return new SyntaxToken(pos, pos, "\":\" expected after declaring", lexicalError, lineNum);
 		} else {
 			flags.funcDec ? flags.funcWasColoned() : flags.varWasColoned();
 			pos++;
-			return new SyntaxToken(pos - 1, 1, ":", ofType);
+			return new SyntaxToken(pos - 1, 1, ":", ofType, lineNum);
 		}
 	}
 
@@ -54,7 +65,7 @@ SyntaxToken* Lexer::nextToken(bool internal) {
 		int end = pos;
 		string text = source.substr(start, end - start);
 
-		return new SyntaxToken(start, end - start, text, integerLiteral);
+		return new SyntaxToken(start, end - start, text, integerLiteral, lineNum);
 	}
 
 	//string found
@@ -69,7 +80,7 @@ SyntaxToken* Lexer::nextToken(bool internal) {
 		pos++;
 		text = source.substr(start, end - start + 1);
 
-		return new SyntaxToken(start, end - start + 1, text, stringLiteral);
+		return new SyntaxToken(start, end - start + 1, text, stringLiteral, lineNum);
 	}
 
 	//keyword, variable, or function found
@@ -83,45 +94,45 @@ SyntaxToken* Lexer::nextToken(bool internal) {
 
 		//check here which one it is
 		if (text == "true" || text == "false") {
-			return new SyntaxToken(start, end - start, text, booleanLiteral);
+			return new SyntaxToken(start, end - start, text, booleanLiteral, lineNum);
 		}
 
 		if (text == "func") { //declare func
 			flags.funcDec = true;
-			return new SyntaxToken(start, end - start, text, declarator);
+			return new SyntaxToken(start, end - start, text, declarator, lineNum);
 		}
 
 		if (text == "var") { //declare var
 			flags.varDec = true;
-			return new SyntaxToken(start, end - start, text, declarator);
+			return new SyntaxToken(start, end - start, text, declarator, lineNum);
 		}
 
 		if (flags.funcColon) { //declare type
 			flags.funcWasTyped();
-			return new SyntaxToken(start, end - start, text, type);
+			return new SyntaxToken(start, end - start, text, type, lineNum);
 		}
 
 		if (flags.funcType) { //declare name
 			flags.clear();
 			declared[text] = function;
-			return new SyntaxToken(start, end - start, text, function);
+			return new SyntaxToken(start, end - start, text, function, lineNum);
 		}
 
 		if (flags.varColon) { //declare type
 			flags.varWasTyped();
-			return new SyntaxToken(start, end - start, text, type);
+			return new SyntaxToken(start, end - start, text, type, lineNum);
 		}
 
 		if (flags.varType) { //declare name
 			flags.clear();
 			declared[text] = variable;
-			return new SyntaxToken(start, end - start, text, variable);
+			return new SyntaxToken(start, end - start, text, variable, lineNum);
 		}
 
 		if (declared.find(text) != declared.end()) { //already declared var/func
-			return new SyntaxToken(start, end - start, text, declared[text]);
+			return new SyntaxToken(start, end - start, text, declared[text], lineNum);
 		}
-		return new SyntaxToken(start, end - start, text, keyword);
+		return new SyntaxToken(start, end - start, text, keyword, lineNum);
 	}
 
 	//special character
@@ -129,29 +140,29 @@ SyntaxToken* Lexer::nextToken(bool internal) {
 		//brackets
 		if (source[pos] == '{' || source[pos] == '}') {
 			pos++;
-			return new SyntaxToken(pos - 1, 1, string{source[pos - 1]}, curlyBracket);
+			return new SyntaxToken(pos - 1, 1, string{source[pos - 1]}, curlyBracket, lineNum);
 		}
 
 		else if (source[pos] == '[' || source[pos] == ']') {
 			pos++;
-			return new SyntaxToken(pos - 1, 1, string{source[pos - 1]}, squareBracket);
+			return new SyntaxToken(pos - 1, 1, string{source[pos - 1]}, squareBracket, lineNum);
 		}
 
 		else if (source[pos] == '(' || source[pos] == ')') {
 			pos++;
-			return new SyntaxToken(pos - 1, 1, string{source[pos - 1]}, roundBracket);
+			return new SyntaxToken(pos - 1, 1, string{source[pos - 1]}, roundBracket, lineNum);
 		}
 
 		//comma
 		else if (source[pos] == ',') {
 			pos++;
-			return new SyntaxToken(pos - 1, 1, ",", separator);
+			return new SyntaxToken(pos - 1, 1, ",", separator, lineNum);
 		}
 
 		//semicolon
 		else if (source[pos] == ';') {
 			pos++;
-			return new SyntaxToken(pos - 1, 1, ";", newLine);
+			return new SyntaxToken(pos - 1, 1, ";", newLine, lineNum);
 		}
 
 		else if (source[pos] == ':') {
@@ -162,7 +173,7 @@ SyntaxToken* Lexer::nextToken(bool internal) {
 			}
 
 			pos++;
-			return new SyntaxToken(pos - 1, 1, ":", ofType);
+			return new SyntaxToken(pos - 1, 1, ":", ofType, lineNum);
 		}
 
 		//operator
@@ -181,17 +192,9 @@ SyntaxToken* Lexer::nextToken(bool internal) {
 			int end = pos;
 			string text = source.substr(start, end - start);
 
-			return new SyntaxToken(start, end - start, text, op);
+			return new SyntaxToken(start, end - start, text, op, lineNum);
 		}
 	}
-}
-
-int Lexer::getLineNum() {
-	int cnt = count(source.begin(), source.begin() + max(pos - 1, 0), '\n');
-	if (cnt == string::npos) {
-		return 1;
-	}
-	return cnt + 1;
 }
 
 Lexer::~Lexer() {

@@ -10,10 +10,11 @@ stringstream* preprocess(string fileName) {
 	stringstream* res = new stringstream();
 	string buffer;
 
+	int lineCnt = 0;
 	while (getline(source, buffer)) {
-		size_t commentPos = -1;
-		do {
-			commentPos = buffer.find("//", commentPos + 1);
+		lineCnt++;
+		size_t commentPos = buffer.find("//");
+		while (commentPos != string::npos) {
 			size_t quoteCnt = 0;
 			for (auto it = buffer.begin(); it < buffer.begin() + commentPos; it++) {
 				if (it == buffer.begin() || *(it - 1) != '\\') {
@@ -26,10 +27,11 @@ stringstream* preprocess(string fileName) {
 				buffer.erase(commentPos);
 				break;
 			}
-		} while (commentPos != string::npos);
-
+			commentPos = buffer.find("//", commentPos + 1);
+		}
+		
 		if (!buffer.empty()) {
-			*res << buffer << '\n';
+			*res << "爨" << lineCnt << " " << buffer << endl; // dont question it
 		}
 	}
 

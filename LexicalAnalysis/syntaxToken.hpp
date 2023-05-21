@@ -36,6 +36,7 @@ public:
 	int length;
 	string text;
 	TokenCode type;
+	int line;
 
 	/**
 	 * @brief Stringify the token
@@ -49,7 +50,8 @@ public:
 	 * @param len Length of the token
 	 * @param text Text of the token
 	 * @param type Type of the token
+	 * @param line Line number of the token
 	 */
-	SyntaxToken(int, int, string, TokenCode);
+	SyntaxToken(int, int, string, TokenCode, int);
 
 };

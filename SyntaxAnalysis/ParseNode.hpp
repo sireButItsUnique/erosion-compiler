@@ -1,3 +1,4 @@
+#pragma once
 // change this later to make code more optimized
 #include <bits/stdc++.h>
 
@@ -16,6 +17,7 @@ public:
 	// variables for the lex token it represents
 	string type;
 	string val;
+	int line;
 
 	// variables to help during construction of tree
 	bool complete;
@@ -37,15 +39,16 @@ public:
 	 * @param lexer the lexer for the tree
 	 * @param type what type the node will be
 	*/
-	ParseNode(Lexer*, string type);
+	ParseNode(Lexer*, string);
 
 	/**
 	 * @brief constructs a new ParseNode that will be a leaf node, given a type and a val
 	 * @param lexer the lexer for the tree
 	 * @param type what type the token will be
 	 * @param val what the actual piece of code the node is representing
+	 * @param line what line the token is on
 	*/
-	ParseNode(Lexer*, string type, string val);
+	ParseNode(Lexer*, string, string, int);
 
 	~ParseNode();
 

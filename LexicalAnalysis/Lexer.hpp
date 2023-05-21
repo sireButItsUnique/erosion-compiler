@@ -19,6 +19,7 @@ private:
 	unordered_map<string, TokenCode> declared;
 	list<SyntaxToken*> expressionTokens;
 	int pos;
+	int lineNum;
 
 public:
 	/**
@@ -47,10 +48,4 @@ public:
 	 * @brief Orders the following tokens for order of operations; stores said tokens in expessionTokens to be given in the correct order when nextToken is called
 	*/
 	void expressify();
-
-	/**
-	 * @brief The the line number of the current token
-	 * @return The line number
-	 */
-	int getLineNum();
 };

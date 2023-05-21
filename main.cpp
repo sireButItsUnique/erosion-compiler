@@ -1,6 +1,7 @@
 #include "./LexicalAnalysis/Lexer.hpp"
 #include "./Preprocessor/Preprocessor.hpp"
 #include "./SyntaxAnalysis/ParseNode.hpp"
+#include "./SemanticAnalysis/semanticAnalysis.hpp"
 
 #include <iostream>
 #include <string>
@@ -29,7 +30,7 @@ int main(int argc, char *argv[]) {
 
 	Lexer lexer = Lexer(str);
 
-	lexer.expressify();
+	// lexer.expressify();
 
 	ParseNode *ast = new ParseNode(&lexer);
 	if (!ast->build()) {
@@ -37,8 +38,18 @@ int main(int argc, char *argv[]) {
 		delete ast;
 		return 1;
 	}
-	ast->print();
 
+	cout << "\x1b[31m";
+	ast->print();
+	cout << "\x1b[0m";
+
+	Diagnoser diagnoser = Diagnoser(); 
+	if (!diagnoser.diagnose(ast)) {
+		cerr << diagnoser.error << endl;
+		return 1;
+	}
+
+	ast->print();
 	delete ast;
 
 	return 0;

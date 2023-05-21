@@ -38,20 +38,15 @@ static const unordered_map<string, vector<vector<string>>> rules{
 		}
 	},
 	{"<args>",
-		{{"<arg>"}},
-	},
-	{"<arg>",
-		{
-			{"<expression>"},
-		}
+		{{"<expression>"}},
 	},
 	{"<argDefs>",
-		{{"<argDef>"}},
+		{{"<def>"}},
 	},
-	{"<argDef>",
+	{"<def>",
 		{
 			{"var", ":", "<type>", "<variable>"},
-			{"var", ":", "<type>", "<variable>", "=" ,"<literal>"},
+			{"var", ":", "<type>", "<variable>", "=" ,"<expression>"},
 		}
 	},
 	{"<conditional>",
@@ -69,8 +64,7 @@ static const unordered_map<string, vector<vector<string>>> rules{
 	},
 	{"<declaration>",
 		{
-			{"var", ":", "<type>", "<variable>", "<newLine>"},
-			{"var", ":", "<type>", "<variable>", "=" ,"<literal>", "<newLine>"},
+			{"<def>", "<newLine>"},
 		}
 	},
 	{"<if>",
@@ -87,7 +81,7 @@ static const unordered_map<string, vector<vector<string>>> rules{
 		{
 			{"for", "(", "<declaration>", "<expression>", "<statement>", ")" "{", "<statements>", "}"},
 			{"for", "(", "<declaration>", "in", "<variable>", ")" "{", "<statements>", "}"}, //"in" var must be array
-			{"for", "(", "<declaration>", "<declaration>", "in", "<variable>", ")", "{", "<statements>", "}"},
+			{"for", "(", "<declaration>", ",", "<declaration>", "in", "<variable>", ")", "{", "<statements>", "}"},
 		}
 	},
 	{"<assignment>",

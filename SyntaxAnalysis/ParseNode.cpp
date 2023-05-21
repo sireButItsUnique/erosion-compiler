@@ -21,6 +21,7 @@ ParseNode::ParseNode(Lexer* lexer, string type) {
 	// variables for the lex token it represents
 	this->type = type;
 	val = "";
+	line = -1;
 
 	// variables to help during construction of tree
 	complete = false;
@@ -32,13 +33,14 @@ ParseNode::ParseNode(Lexer* lexer, string type) {
 	}
 }
 
-ParseNode::ParseNode(Lexer* lexer, string type, string val) {
+ParseNode::ParseNode(Lexer* lexer, string type, string val, int line) {
 	// actual lexer
 	this->lexer = lexer;
 
 	// variables for the lex token it represents
 	this->type = type;
 	this->val = val;
+	this->line = line;
 
 	// variables to help during construction of tree
 	complete = true;
@@ -188,7 +190,7 @@ bool ParseNode::findPath(SyntaxToken* token, stack<int>& res, string type, int d
 
 void ParseNode::constructPath(SyntaxToken* token, stack<int>& path) {
 	if (path.size() == 1) {
-		children.emplace_back(new ParseNode(lexer, token->tokenCodeStringify(), token->text));
+		children.emplace_back(new ParseNode(lexer, token->tokenCodeStringify(), token->text, token->line));
 		return;
 	}
 	// If the variation has only 1 term, then we pick that one, otherwise we pick whichever node we are on
@@ -220,11 +222,11 @@ bool ParseNode::handleToken(SyntaxToken* token) {
 					ParseNode* tmp2 = new ParseNode(lexer, "<binaryExpression>");
 					children.back()->children.push_back(tmp2);
 					tmp2->children.push_back(tmp1);
-					tmp2->children.push_back(new ParseNode(lexer, "<op>", token->text));
+					tmp2->children.push_back(new ParseNode(lexer, "<op>", token->text, token->line));
 					return true;
 				} else if (token->text == "(") {
 					ParseNode* tmp1 = new ParseNode(lexer, "<expression>");
-					tmp1->children.push_back(new ParseNode(lexer, "<roundBracket>", "("));
+					tmp1->children.push_back(new ParseNode(lexer, "<roundBracket>", "(", token->line));
 					ParseNode* tmp2 = children.back()->children.back();
 					if (tmp2->type != "<binaryExpression>" || tmp2->children.size() != 2) {
 						delete tmp1;
@@ -256,9 +258,11 @@ bool ParseNode::handleToken(SyntaxToken* token) {
 	// go into latest child node
 	else {
 		if (children.back()->type == "<args>" || children.back()->type == "<argDefs>") {
-			if (token->text == ")") {
+
+			// Get last child of the argument list, see if it is done
+			if (children.back()->children.back()->complete && token->text == ")") {
 				children.back()->complete = true;
-				children.push_back(new ParseNode(lexer, "<roundBracket>", ")"));
+				children.push_back(new ParseNode(lexer, "<roundBracket>", ")", token->line));
 				updateCompleteness();
 				return true;
 			}
@@ -276,7 +280,7 @@ bool ParseNode::build() {
 
 	while (next) {
 		if (!handleToken(next)) {
-			cerr << "Syntax error line " << lexer->getLineNum() << "—fix ur code bro" << endl;
+			cerr << "Syntax error line " << next->line << "—fix ur code bro" << endl;
 			delete next;
 			return false;
 		}
@@ -286,7 +290,7 @@ bool ParseNode::build() {
 
 	updateCompleteness();
 	if (!complete) {
-		cerr << "Syntax error line " << lexer->getLineNum() << "—fix ur code bro" << endl;
+		cerr << "Syntax error line " << next->line << "—fix ur code bro" << endl;
 		return false;
 	}
 	return true;
@@ -329,6 +333,4 @@ void ParseNode::print(int depth) {
 	for (auto& c : children) {
 		c->print(depth + 1);
 	}
-
-	return;
 }

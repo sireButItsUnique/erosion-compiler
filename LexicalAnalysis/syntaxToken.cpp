@@ -23,12 +23,12 @@ string SyntaxToken::tokenCodeStringify() {
 	return _tokenCodeStringify[type];
 }
 
-SyntaxToken::SyntaxToken(int start, int len, string text, TokenCode type) {
+SyntaxToken::SyntaxToken(int start, int len, string text, TokenCode type, int lineNum) {
 		this->start = start;
 		this->length = len;
 		this->type = type;
 		this->text = text;
-		// cout << "startPos: " << start << ", Length: " << len << ", Text: " << text << ", of type: " << tokenCodeStringify() << endl;
+		this->line = lineNum;
+		cout << "Line: " << lineNum << ", startPos: " << start << ", Length: " << len << ", Text: " << text << ", of type: " << tokenCodeStringify() << endl;
 		return;
 }
-
