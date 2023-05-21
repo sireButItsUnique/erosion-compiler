@@ -1,8 +1,21 @@
 #include "semanticAnalysis.hpp"
 #include "../SyntaxAnalysis/grammar.hpp"
 
+Diagnoser::Diagnoser() {
+	scopes.push_front({});
+}
+
 bool Diagnoser::diagnose(ParseNode* root) {
-	// remove nonsense
+	bool newScope = false;
+	for (auto child : root->children) {
+		if (child->val == "{") {
+			newScope = true;
+			scopes.push_front({});
+			break;
+		}
+	}
+
+	// check for nonsense
 	if (!check(root)) {
 		ParseNode* node = root;
 		while (node->children.size()) {
@@ -25,11 +38,30 @@ bool Diagnoser::diagnose(ParseNode* root) {
 		}
 	}
 
+	if (newScope) {
+		scopes.pop_front();
+	}
+
 	return true;
+}
+
+string Diagnoser::queryVar(string var) {
+	for (auto scope : scopes) {
+		auto tmp = scope.find(var);
+		if (tmp != scope.end()) {
+			return tmp->second;
+		}
+	}
+	return "";
 }
 
 bool Diagnoser::check(ParseNode* root) {
 	if (root->type == "<func>") {
+		if (scopes.size() != 2) { // 2 because 1 from global scope and 1 from function scope
+			error = "Functions must be defined in the global scope";
+			return false;
+		}
+
 		string name = root->children[3]->val; // name of function
 
 		if (args.count(name)) {
@@ -49,7 +81,7 @@ bool Diagnoser::check(ParseNode* root) {
 	else if (root->type == "<def>") {
 		string name = root->children[3]->val; // name of variable
 
-		if (vars.count(name)) {
+		if (scopes.front().count(name)) {
 			error = "Variable \"" + name + "\" already exists";
 			return false;
 		}
@@ -61,7 +93,7 @@ bool Diagnoser::check(ParseNode* root) {
 			return false;
 		}
 
-		vars[name] = type;
+		scopes.front()[name] = type;
 	}
 
 	else if (root->type == "<for>") {
@@ -74,7 +106,10 @@ bool Diagnoser::check(ParseNode* root) {
 
 	else if (root->type == "<functionCall>") {
 		ParseNode* callArgs = root->children[2]; // arguments in function call
-		
+		if (!args.count(root->children[0]->val)) {
+			error = "Function \"" + root->children[0]->val + "\" does not exist";
+			return false;
+		}
 		if (callArgs->type == "<args>") {
 			if (callArgs->children.size() != args[root->children[0]->val].size()) {
 				error = "Function \"" + root->children[0]->val + "\" requires " + to_string(args[root->children[0]->val].size()) + " arguments, " + to_string(callArgs->children.size()) + " provided";
@@ -84,8 +119,12 @@ bool Diagnoser::check(ParseNode* root) {
 			for (int i = 0; i < argTypes.size(); i++) {
 				ParseNode* child = callArgs->children[i];
 				if (child->children[0]->type == "<variable>") {
-					if (vars[child->children[0]->val] != argTypes[i]) {
-						error = "Argument \"" + child->children[0]->val + "\" is of type \"" + vars[child->children[0]->val] + "\" but should be of type \"" + argTypes[i] + "\"";
+					if (queryVar(child->children[0]->val).empty()) {
+						error = "Variable \"" + child->children[0]->val + "\" does not exist";
+						return false;
+					}
+					if (queryVar(child->children[0]->val) != argTypes[i]) {
+						error = "Argument \"" + child->children[0]->val + "\" is of type \"" + queryVar(child->children[0]->val) + "\" but should be of type \"" + argTypes[i] + "\"";
 						return false;
 					}
 				}
@@ -127,7 +166,7 @@ bool Diagnoser::check(ParseNode* root) {
 	}
 
 	else if (root->type == "<variable>") {
-		if (!vars.count(root->val)) {
+		if (queryVar(root->val).empty()) {
 			error = "Variable \"" + root->val + "\" is undefined";
 			return false;
 		}
@@ -162,7 +201,7 @@ void Diagnoser::clean(ParseNode* root) {
 	for (int i = 0; i < root->children.size(); i++) {
 		ParseNode* child = root->children[i];
 
-		if (child->val.size() && rules.find(child->type) == rules.end()) {
+		if (child->val == ";" || (child->val.size() && rules.find(child->type) == rules.end())) {
 			root->children.erase(root->children.begin() + i);
 			i--;
 		}
