@@ -25,11 +25,11 @@ bool Diagnoser::diagnose(ParseNode* root) {
 		return false;
 	}
 
-	// clean
-	clean(root);
-
 	// hoist
 	hoist(root);
+
+	// clean
+	clean(root);
 
 	// recurse
 	for (auto child : root->children) {
@@ -48,6 +48,7 @@ bool Diagnoser::diagnose(ParseNode* root) {
 string Diagnoser::queryVar(string var) {
 	for (auto scope : scopes) {
 		auto tmp = scope.find(var);
+		
 		if (tmp != scope.end()) {
 			return tmp->second;
 		}
@@ -111,11 +112,11 @@ bool Diagnoser::check(ParseNode* root) {
 			return false;
 		}
 		if (callArgs->type == "<args>") {
-			if (callArgs->children.size() != args[root->children[0]->val].size()) {
-				error = "Function \"" + root->children[0]->val + "\" requires " + to_string(args[root->children[0]->val].size()) + " arguments, " + to_string(callArgs->children.size()) + " provided";
+			if (callArgs->children.size() != args.at(root->children[0]->val).size()) {
+				error = "Function \"" + root->children[0]->val + "\" requires " + to_string(args.at(root->children[0]->val).size()) + " arguments, " + to_string(callArgs->children.size()) + " provided";
 				return false;
 			}
-			vector<string>& argTypes = args[root->children[0]->val]; // types of arguments in function definition
+			vector<string>& argTypes = args.at(root->children[0]->val); // types of arguments in function definition
 			for (int i = 0; i < argTypes.size(); i++) {
 				ParseNode* child = callArgs->children[i];
 				if (child->children[0]->type == "<variable>") {
@@ -151,8 +152,8 @@ bool Diagnoser::check(ParseNode* root) {
 				// must either be correct or an expression, in which case we let them suffer because its too hard to check
 			}
 		} else {
-			if (args[root->children[0]->val].size() != 0) {
-				error = "Function \"" + root->children[0]->val + "\" requires " + to_string(args[root->children[0]->val].size()) + " arguments, 0 provided";
+			if (args.at(root->children[0]->val).size() != 0) {
+				error = "Function \"" + root->children[0]->val + "\" requires " + to_string(args.at(root->children[0]->val).size()) + " arguments, 0 provided";
 				return false;
 			}
 		}
@@ -186,7 +187,7 @@ void Diagnoser::hoist(ParseNode* root) {
 	for (int i = 0; i < root->children.size(); i++) {
 		ParseNode* child = root->children[i];
 
-		if (child->type == "<statements>" || child->type == "<args>" || child->type == "<argDefs>" || child->type == "<conditional>") {
+		if (child->type == "<statements>" || child->type == "<args>" || child->type == "<argDefs>" || child->type == "<conditional>" || child->type == "<expression>") {
 
 			// erase the child from the root
 			root->children.erase(root->children.begin() + i);
