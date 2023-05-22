@@ -16,6 +16,12 @@ private:
 	string queryVar(string);
 
 	/**
+	 * @brief recursively searches for return statement in non-void functions
+	 * @param root the parent node
+	*/
+	bool findFunctionReturn(ParseNode*);
+
+	/**
 	 * @brief checks for nonsense in the current node
 	 * @param root the parent node
 	 * @return true if the node is valid, false otherwise

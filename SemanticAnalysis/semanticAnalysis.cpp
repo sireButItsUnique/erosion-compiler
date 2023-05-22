@@ -5,7 +5,7 @@ Diagnoser::Diagnoser() {
 	scopes.push_front({});
 }
 
-bool Diagnoser::diagnose(ParseNode* root) {
+bool Diagnoser::diagnose(ParseNode *root) {
 
 	// scope info
 	bool newScope = false;
@@ -24,7 +24,7 @@ bool Diagnoser::diagnose(ParseNode* root) {
 
 	// check for nonsense
 	if (!check(root)) {
-		ParseNode* node = root;
+		ParseNode *node = root;
 		while (node->children.size()) {
 			node = node->children[0];
 		}
@@ -67,7 +67,29 @@ string Diagnoser::queryVar(string var) {
 	return "";
 }
 
-bool Diagnoser::check(ParseNode* root) {
+bool Diagnoser::findFunctionReturn(ParseNode* root) {
+	if (root->type == "<return>") {
+		return true;
+	}
+
+	if (root->type == "TERMINAL_OP") {
+		return false;
+	}
+
+	bool found = false;
+
+	for (auto child : root->children) {
+		if (findFunctionReturn(child)) {
+			found = true;
+
+			break;
+		}
+	}
+
+	return found;
+};
+
+bool Diagnoser::check(ParseNode *root) {
 	if (root->type == "<return>") {
 		if (!insideFunc) {
 			error = "Cannot return outside of a function";
@@ -88,13 +110,36 @@ bool Diagnoser::check(ParseNode* root) {
 			return false;
 		}
 
-		ParseNode* argDefs = root->children[5]; // argument definitions
+		ParseNode *argDefs = root->children[5]; // argument definitions
 
 		args[name] = {};
 
 		if (argDefs->type == "<argDefs>") {
 			for (auto child : argDefs->children) {
 				args[name].push_back(child->children[2]->val);
+			}
+		}
+
+		// check if there is a return statement at the end if function is non-void
+
+		string type = root->children[2]->val; // type of function
+
+		if (type != "void") {
+			ParseNode *statements = root->children[root->children.size() - 2]; // statements
+			bool found = false;
+
+			for (auto statement : statements->children) {
+				if (findFunctionReturn(statement)) {
+					found = true;
+
+					break;
+				}
+			}
+
+			if (!found) {
+				error = "Non-void functions must include a return statement";
+
+				return false;
 			}
 		}
 	}
@@ -126,30 +171,31 @@ bool Diagnoser::check(ParseNode* root) {
 	}
 
 	else if (root->type == "<functionCall>") {
-		ParseNode* callArgs = root->children[2]; // arguments in function call
+		ParseNode *callArgs = root->children[2]; // arguments in function call
 		if (!args.count(root->children[0]->val)) {
 			error = "Function \"" + root->children[0]->val + "\" does not exist";
 			return false;
 		}
 		if (callArgs->type == "<args>") {
 			if (callArgs->children.size() != args.at(root->children[0]->val).size()) {
-				error = "Function \"" + root->children[0]->val + "\" requires " + to_string(args.at(root->children[0]->val).size()) + " arguments, " + to_string(callArgs->children.size()) + " provided";
+				error = "Function \"" + root->children[0]->val + "\" requires " + to_string(args.at(root->children[0]->val).size()) + " arguments, " +
+						to_string(callArgs->children.size()) + " provided";
 				return false;
 			}
-			vector<string>& argTypes = args.at(root->children[0]->val); // types of arguments in function definition
+			vector<string> &argTypes = args.at(root->children[0]->val); // types of arguments in function definition
 			for (int i = 0; i < argTypes.size(); i++) {
-				ParseNode* child = callArgs->children[i];
+				ParseNode *child = callArgs->children[i];
 				if (child->children[0]->type == "<variable>") {
 					if (queryVar(child->children[0]->val).empty()) {
 						error = "Variable \"" + child->children[0]->val + "\" does not exist";
 						return false;
 					}
 					if (queryVar(child->children[0]->val) != argTypes[i]) {
-						error = "Argument \"" + child->children[0]->val + "\" is of type \"" + queryVar(child->children[0]->val) + "\" but should be of type \"" + argTypes[i] + "\"";
+						error = "Argument \"" + child->children[0]->val + "\" is of type \"" + queryVar(child->children[0]->val) +
+								"\" but should be of type \"" + argTypes[i] + "\"";
 						return false;
 					}
-				}
-				else if (child->children[0]->type == "<literal>") {
+				} else if (child->children[0]->type == "<literal>") {
 					string type = child->children[0]->children[0]->type;
 
 					// should be string but isnt
@@ -189,11 +235,12 @@ bool Diagnoser::check(ParseNode* root) {
 	return true;
 }
 
-void Diagnoser::hoist(ParseNode* root) {
+void Diagnoser::hoist(ParseNode *root) {
 	for (int i = 0; i < root->children.size(); i++) {
-		ParseNode* child = root->children[i];
+		ParseNode *child = root->children[i];
 
-		if (child->type == "<statements>" || child->type == "<args>" || child->type == "<argDefs>" || child->type == "<conditional>" || child->type == "<expression>" || child->type == "<statement>" || child->type == "<declaration>") {
+		if (child->type == "<statements>" || child->type == "<args>" || child->type == "<argDefs>" || child->type == "<conditional>" ||
+			child->type == "<expression>" || child->type == "<statement>" || child->type == "<declaration>") {
 
 			// erase the child from the root
 			root->children.erase(root->children.begin() + i);
@@ -205,9 +252,9 @@ void Diagnoser::hoist(ParseNode* root) {
 	}
 }
 
-void Diagnoser::clean(ParseNode* root) {
+void Diagnoser::clean(ParseNode *root) {
 	for (int i = 0; i < root->children.size(); i++) {
-		ParseNode* child = root->children[i];
+		ParseNode *child = root->children[i];
 
 		if (child->val == ";" || (child->val.size() && rules.find(child->type) == rules.end())) {
 			root->children.erase(root->children.begin() + i);
