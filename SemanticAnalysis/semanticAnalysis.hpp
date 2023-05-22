@@ -3,9 +3,10 @@
 
 class Diagnoser {
 private:
-	unordered_set<string> types = {"int", "float", "bool", "string", "void"};
+	unordered_set<string> types = {"int", "float", "double", "long", "short", "bool", "string", "void"};
 	unordered_map<string, vector<string>> args; // name, types
 	deque<unordered_map<string, string>> scopes{}; // name, type
+	bool insideFunc = false;
 
 	/**
 	 * @brief queries the global and local variables for a variable

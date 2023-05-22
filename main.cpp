@@ -40,10 +40,10 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	Diagnoser diagnoser = Diagnoser(); 
+	Diagnoser diagnoser = Diagnoser();
 	if (!diagnoser.diagnose(ast)) {
-		cerr << diagnoser.error << endl;
 		ast->print();
+		cerr << "\x1b[31m" << diagnoser.error << "\x1b[0m" << endl;
 		return 1;
 	}
 

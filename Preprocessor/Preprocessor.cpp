@@ -29,7 +29,7 @@ stringstream* preprocess(string fileName) {
 			}
 			commentPos = buffer.find("//", commentPos + 1);
 		}
-		
+
 		if (!buffer.empty()) {
 			*res << "爨" << lineCnt << " " << buffer << endl; // dont question it
 		}

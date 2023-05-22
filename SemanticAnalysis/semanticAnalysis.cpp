@@ -6,6 +6,8 @@ Diagnoser::Diagnoser() {
 }
 
 bool Diagnoser::diagnose(ParseNode* root) {
+
+	// scope info
 	bool newScope = false;
 	for (auto child : root->children) {
 		if (child->val == "{") {
@@ -13,6 +15,11 @@ bool Diagnoser::diagnose(ParseNode* root) {
 			scopes.push_front({});
 			break;
 		}
+	}
+
+	// function info
+	if (root->type == "<func>") {
+		insideFunc = true;
 	}
 
 	// check for nonsense
@@ -42,13 +49,17 @@ bool Diagnoser::diagnose(ParseNode* root) {
 		scopes.pop_front();
 	}
 
+	if (root->type == "<func>") {
+		insideFunc = false;
+	}
+
 	return true;
 }
 
 string Diagnoser::queryVar(string var) {
 	for (auto scope : scopes) {
 		auto tmp = scope.find(var);
-		
+
 		if (tmp != scope.end()) {
 			return tmp->second;
 		}
@@ -57,7 +68,14 @@ string Diagnoser::queryVar(string var) {
 }
 
 bool Diagnoser::check(ParseNode* root) {
-	if (root->type == "<func>") {
+	if (root->type == "<return>") {
+		if (!insideFunc) {
+			error = "Cannot return outside of a function";
+			return false;
+		}
+	}
+
+	else if (root->type == "<func>") {
 		if (scopes.size() != 2) { // 2 because 1 from global scope and 1 from function scope
 			error = "Functions must be defined in the global scope";
 			return false;

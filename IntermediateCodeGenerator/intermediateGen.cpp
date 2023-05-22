@@ -24,114 +24,208 @@ const unordered_map<string, string> ops = {
 	{"||","or"},
 };
 
+string IRGenerator::labelify() {
+	return ".L" + to_string(labelCnt++);
+}
+
 int IRGenerator::generateIR(ParseNode *root, vector<string>& code) {
 	if (root->type == "<func>") {
-	
+
 	}
-	
+
 	else if (root->type == "<def>") {
-
+		if (st.empty()) { // global scope
+			if (root->children.size() == 2) { // declaration only
+				bss.push_back({root->children[1]->val, sizes.at(root->children[0]->val)});
+			} else {
+				// TODO: Make semantics error if its not a literal
+				Thing thing{};
+				// TODO: Parse string escape sequences somewhere earlier
+				ParseNode* child = root->children[2]->children[0];
+				if (child->type == "<stringLiteral>") {
+					thing.size = child->val.size() - 1;
+					thing.data = malloc(thing.size);
+					memcpy(thing.data, child->val.c_str() + 1, thing.size - 1);
+					((char *)thing.data)[thing.size - 1] = '\0';
+				} else {
+					thing.size = sizes[root->children[0]->val];
+					thing.data = malloc(thing.size);
+					if (root->children[0]->val == "float") {
+						*(float*)thing.data = stof(child->val);
+					} else if (root->children[0]->val == "double") {
+						*(double*)thing.data = stod(child->val);
+					} else {
+						uint64_t tmp;
+						if (child->val[0] == '-') {
+							tmp = stoll(child->val);
+						} else {
+							tmp = stoull(child->val);
+						}
+						memcpy(thing.data, &tmp, thing.size);
+					}
+				}
+				data.push_back({root->children[1]->val, thing});
+			}
+		}
 	}
-	
+
 	else if (root->type == "<return>") {
-
-	}
-	
-	else if (root->type == "<if>") {
-		
-		//gen jmp
-		string label = 'L' + to_string(labelCnt);
-		labelCnt++;
-		generateIR(root->children[0], code);
+		st.pop();
 		code.push_back("pop 0");
-		code.push_back("test 0 0");
-		code.push_back("jnz ." + label);
+		code.push_back("ret 0");
+	}
 
-		//gen contents
+	else if (root->type == "<if>") {
+
+		// gen jmp
+		string label = labelify();
+		generateIR(root->children[0], code);
+		st.pop();
+		code.push_back("pop 0 ; IF start");
+		code.push_back("test 0 0");
+		code.push_back("jnz " + label);
+
+		// gen contents
 		for (int i = 1; i < root->children.size(); i++) {
 			generateIR(root->children[i], code);
 		}
-		
-		//gen label
-		code.push_back(label + ":");
+
+		// gen label
+		code.push_back(label + ": ; IF end");
 	}
 
 	else if (root->type == "<while>") {
-		
-		//gen jmp
-		string label = 'L' + to_string(labelCnt);
-		labelCnt++;
+
+		// gen jmp
+		string first = labelify();
+		string second = labelify();
+		code.push_back(first + ": ; WHILE start");
 		generateIR(root->children[0], code);
+		st.pop();
 		code.push_back("pop 0");
 		code.push_back("test 0 0");
-		code.push_back("jz ." + label);
+		code.push_back("jz " + second);
 
-		//gen label
-		code.push_back(label + ":");
-
-		//gen contents
+		// gen contents
 		for (int i = 1; i < root->children.size(); i++) {
 			generateIR(root->children[i], code);
 		}
-		
-		//gen loop jmp
-		label = 'L' + to_string(labelCnt);
-		labelCnt++;
+
+		// gen loop jmp
+		code.push_back("jmp " + first);
+		code.push_back(second + ": ; WHILE end");
+	}
+
+	else if (root->type == "<for>") {
+
+		// gen declar
 		generateIR(root->children[0], code);
+
+		// gen label
+		string first = labelify();
+		string second = labelify();
+		code.push_back(first + ":");
+
+		// gen jmp
+		generateIR(root->children[1], code);
+		st.pop();
 		code.push_back("pop 0");
 		code.push_back("test 0 0");
-		code.push_back("jnz ." + label);
+		code.push_back("jz " + second);
+
+		// gen contents
+		for (int i = 3; i < root->children.size(); i++) {
+			generateIR(root->children[i], code);
+		}
+
+		// gen update
+		generateIR(root->children[2], code);
+
+		// gen loop jmp
+		code.push_back("jmp " + first);
+
+		// gen escape label
+		code.push_back(second + ":");
 	}
-	
-	else if (root->type == "<for>") {
-		
-	}
-	
+
 	else if (root->type == "<assignment>") {
-		
+
 	}
 
 	else if (root->type == "<unaryExpression>") {
 
-		//first operand
-		if (root->children[0]->type == "<binaryExpression>" || root->children[0]->type == "<unaryExpression>") {
-			generateIR(root->children[0], code);
+		code.push_back("; start unary expression");
 
+		// load operand
+		if (root->children[1]->type == "<literal>") {
+			code.push_back("mov 0 L" + root->children[1]->children[0]->val);
+		}
+		else if (root->children[1]->type == "<variable>") {
+			code.push_back("mov 0 V" + root->children[1]->val);
+		}
+		else {
+			generateIR(root->children[1], code);
+
+			st.pop();
 			code.push_back("pop 0"); // move output into register
-		} else {
-			code.push_back("mov 0 " + root->children[0]->val); // move constant into register
 		}
 
-		code.push_back(ops.at(root->children[1]->val + 'u'));
+		code.push_back(ops.at(root->children[0]->val + 'u'));
+		st.push({SENTINEL, 8});
 		code.push_back("push 0"); // push output onto stack
+		code.push_back("; end unary expression");
 	}
-	
+
 	else if (root->type == "<binaryExpression>") {
 
-		//first operand
-		if (root->children[0]->type == "<binaryExpression>" || root->children[0]->type == "<unaryExpression>") {
+		code.push_back("; start binary expression");
+
+		// first operand
+		if (root->children[0]->type == "<literal>") {
+			code.push_back("mov 0 L" + root->children[0]->children[0]->val);
+		}
+		else if (root->children[0]->type == "<variable>") {
+			code.push_back("mov 0 V" + root->children[0]->val);
+		}
+		else {
 			generateIR(root->children[0], code);
 
+			st.pop();
 			code.push_back("pop 0"); // move output into register
-		} else {
-			code.push_back("mov 0 " + root->children[0]->val); // move constant into register
 		}
-		
-		//second operand
-		if (root->children[2]->type == "<binaryExpression>" || root->children[2]->type == "<unaryExpression>") {
-			generateIR(root->children[2], code); 
-			
+
+		// second operand
+		if (root->children[2]->type == "<literal>") {
+			code.push_back("mov 1 L" + root->children[2]->children[0]->val);
+		}
+		else if (root->children[2]->type == "<variable>") {
+			code.push_back("mov 1 V" + root->children[2]->val);
+		}
+		else {
+			generateIR(root->children[2], code);
+
+			st.pop();
 			code.push_back("pop 1"); // move output into register
-		} else {
-			code.push_back("mov 1 " + root->children[2]->val); // move constant into register
 		}
 
 		code.push_back(ops.at(root->children[1]->val));
+		st.push({SENTINEL, 8});
 		code.push_back("push 0"); // push output onto stack
+		code.push_back("; end binary expression");
 	}
 
 	else if (root->type == "<functionCall>") {
 
+	}
+
+	else if (root->type == "<program>") {
+		for (int i = 0; i < root->children.size(); i++) {
+			generateIR(root->children[i], code);
+		}
+	}
+
+	else if (root->type == "<def>") {
+		generateIR(root->children[3], code);
 	}
 
 	else {

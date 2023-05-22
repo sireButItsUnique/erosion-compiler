@@ -6,7 +6,7 @@ SRCS=$(wildcard *.cpp) $(shell ls {FinalCodeGenerator,IntermediateCodeGenerator,
 OBJS=$(SRCS:.cpp=.o)
 
 debug: erosion
-	./erosion test.cor
+	bash -c "./erosion test.cor ; exit 0"
 
 release: CFLAGS += -O2
 release: erosion
