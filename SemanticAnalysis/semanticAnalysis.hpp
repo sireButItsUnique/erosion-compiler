@@ -5,7 +5,8 @@ class Diagnoser {
 private:
 	unordered_set<string> types = {"int", "float", "double", "long", "short", "bool", "string", "void"};
 	unordered_map<string, vector<string>> functions; // name, types; holds all the functions currently defined in the program
-	deque<unordered_map<string, string>> scopes{}; // name, type
+	// Stack of scopes, front = current scope, back = global scope
+	deque<unordered_map<string, string>> scopes = {}; // name, type
 	string insideFunc = "";
 
 	/**
@@ -20,6 +21,15 @@ private:
 	 * @param root the parent node
 	 */
 	string checkReturns(ParseNode*);
+
+	/**
+	 * @brief check the validity of a variable definition
+	 * @details see if the definition references itself
+	 * @param root the parent node
+	 * @param varName the name of the variable being defined
+	 * @return true if a variable definition is valid
+	 */
+	bool checkDefine(ParseNode*, string);
 
 	/**
 	 * @brief checks for nonsense in the current node

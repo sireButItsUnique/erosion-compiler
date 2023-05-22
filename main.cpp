@@ -34,11 +34,14 @@ int main(int argc, char* argv[]) {
 	// lexer.expressify();
 
 	ParseNode* ast = new ParseNode(&lexer);
+	cerr << "\x1b[31m";
 	if (!ast->build()) {
+		cerr << "\x1b[0m";
 		ast->print();
 		delete ast;
 		return 1;
 	}
+	cerr << "\x1b[0m";
 
 	Diagnoser diagnoser = Diagnoser();
 	if (!diagnoser.diagnose(ast)) {

@@ -94,6 +94,16 @@ string Diagnoser::queryVar(string var) {
 	return "";
 }
 
+bool Diagnoser::checkDefine(ParseNode* root, string varName) {
+	if (root->type == "TERMINAL_OP" || root->type == "<variable>") {
+		return (root->val != varName);
+	}
+
+	for (auto child : root->children) {
+		return checkDefine(child, varName);
+	}
+}
+
 // TODO: When we really support custom types we need to make a casting checker
 // because right now we are just trusting that anything other than a string can be casted to each other
 string Diagnoser::checkReturns(ParseNode* root) {
@@ -106,7 +116,7 @@ string Diagnoser::checkReturns(ParseNode* root) {
 			}
 
 			ParseNode* child = node->children[1]->children[0];
-			
+
 			if (child->type == "<literal>") {
 				if (child->children[0]->type == "<stringLiteral>") {
 					return "string";
@@ -128,41 +138,6 @@ string Diagnoser::checkReturns(ParseNode* root) {
 
 	return "void";
 }
-
-// return;
-// return <expression>;
-
-// bool Diagnoser::functionReturnType(ParseNode *root, bool &typeMatch, string funcType) {
-// 	if (root->type == "<return>") {
-
-// 		if (funcType == "void" && root->children.size() == 2) {
-// 			typeMatch = true;
-// 		}
-
-// 		// TODO: check return value is a string
-// 		// if (funcType == "string" && root->children.size() > 2) {
-// 		// 	if ()
-// 		// }
-
-// 		return true;
-// 	}
-
-// 	if (root->type == "TERMINAL_OP") {
-// 		return false;
-// 	}
-
-// 	bool found = false;
-
-// 	for (auto child : root->children) {
-// 		if (functionReturnType(child, typeMatch, funcType)) {
-// 			found = true;
-
-// 			break;
-// 		}
-// 	}
-
-// 	return found;
-// };
 
 bool Diagnoser::check(ParseNode* root) {
 	if (root->type == "<return>") {
@@ -196,8 +171,14 @@ bool Diagnoser::check(ParseNode* root) {
 	else if (root->type == "<def>") {
 		string name = root->children[3]->val; // name of variable
 
-		if (scopes.front().count(name)) {
+		// variable in a scope CAN'T have the same name as another variable in a parent scope
+		if (!queryVar(name).empty()) {
 			error = "Variable \"" + name + "\" already exists";
+			return false;
+		}
+
+		if (functions.count(name)) {
+			error = "Variable \"" + name + "\" cannot have the same name as a function";
 			return false;
 		}
 
@@ -206,6 +187,24 @@ bool Diagnoser::check(ParseNode* root) {
 		if (type == "void") {
 			error = "Variable \"" + name + "\" cannot be of type void";
 			return false;
+		}
+
+		// if the variable definition is an assignment (e.g. var: int a = 5)
+		if (root->children.size() > 4) {
+			ParseNode* expression = root->children.back();
+
+			if (scopes.size() == 1) {
+				if (root->children[5]->children[0]->type != "<literal>") {
+					error = "Global variables must be initialized with a literal";
+					return false;
+				}
+			}
+
+			if (!checkDefine(expression, name)) {
+				error = "Variable \"" + name + "\" must be defined prior to usage";
+
+				return false;
+			}
 		}
 
 		scopes.front()[name] = type;
