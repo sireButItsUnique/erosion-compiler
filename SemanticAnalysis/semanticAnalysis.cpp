@@ -67,8 +67,13 @@ string Diagnoser::queryVar(string var) {
 	return "";
 }
 
-bool Diagnoser::findFunctionReturn(ParseNode* root) {
+bool Diagnoser::functionReturnType(ParseNode *root, bool &typeMatch) {
 	if (root->type == "<return>") {
+		// TODO: be able to get the type of a variable if the "<return> <expression>"'s expression is a variable
+		// since we currently aren't able to know the type of the variable
+
+		// TODO: check if the return type is the same as the declared return type in the function declaration and change typeMatch to true if yes
+
 		return true;
 	}
 
@@ -79,7 +84,7 @@ bool Diagnoser::findFunctionReturn(ParseNode* root) {
 	bool found = false;
 
 	for (auto child : root->children) {
-		if (findFunctionReturn(child)) {
+		if (functionReturnType(child, typeMatch)) {
 			found = true;
 
 			break;
@@ -121,26 +126,31 @@ bool Diagnoser::check(ParseNode *root) {
 		}
 
 		// check if there is a return statement at the end if function is non-void
+		// if true, check if the type returned is the same as the function type
 
 		string type = root->children[2]->val; // type of function
+		ParseNode *statements = root->children[root->children.size() - 2]; // statements
+		bool found = false;
+		bool typeMatch = false;
 
-		if (type != "void") {
-			ParseNode *statements = root->children[root->children.size() - 2]; // statements
-			bool found = false;
+		for (auto statement : statements->children) {
+			if (functionReturnType(statement, typeMatch)) {
+				found = true;
 
-			for (auto statement : statements->children) {
-				if (findFunctionReturn(statement)) {
-					found = true;
-
-					break;
-				}
+				break;
 			}
+		}
 
-			if (!found) {
-				error = "Non-void functions must include a return statement";
+		if (!found && type != "void") {
+			error = "Non-void functions must include a return statement";
 
-				return false;
-			}
+			return false;
+		}
+
+		if (!typeMatch) {
+			error = "Return value type must match declared return type of the function";
+
+			return false;
 		}
 	}
 

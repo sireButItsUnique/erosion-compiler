@@ -16,10 +16,11 @@ private:
 	string queryVar(string);
 
 	/**
-	 * @brief recursively searches for return statement in non-void functions
+	 * @brief recursively searches for return statement in a function to find if it exists and the type it returns
 	 * @param root the parent node
+	 * @param typeMatch a reference to a boolean which becomes true if the return statement type is same as declared function type 
 	*/
-	bool findFunctionReturn(ParseNode*);
+	bool functionReturnType(ParseNode*, bool&);
 
 	/**
 	 * @brief checks for nonsense in the current node
