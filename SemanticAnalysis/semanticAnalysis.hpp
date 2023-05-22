@@ -4,9 +4,9 @@
 class Diagnoser {
 private:
 	unordered_set<string> types = {"int", "float", "double", "long", "short", "bool", "string", "void"};
-	unordered_map<string, vector<string>> args; // name, types
+	unordered_map<string, vector<string>> functions; // name, types; holds all the functions currently defined in the program
 	deque<unordered_map<string, string>> scopes{}; // name, type
-	bool insideFunc = false;
+	string insideFunc = "";
 
 	/**
 	 * @brief queries the global and local variables for a variable
@@ -18,9 +18,8 @@ private:
 	/**
 	 * @brief recursively searches for return statement in a function to find if it exists and the type it returns
 	 * @param root the parent node
-	 * @param typeMatch a reference to a boolean which becomes true if the return statement type is same as declared function type 
-	*/
-	bool functionReturnType(ParseNode*, bool&);
+	 */
+	string checkReturns(ParseNode*);
 
 	/**
 	 * @brief checks for nonsense in the current node

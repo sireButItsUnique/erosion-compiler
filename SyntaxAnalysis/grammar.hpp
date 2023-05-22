@@ -33,7 +33,7 @@ static const unordered_map<string, vector<vector<string>>> rules{
 			{"func", ":", "<type>", "<function>", "(", ")", "{", "<statements>", "}"},
 		}
 	},
-	{"<args>",
+	{"<functions>",
 		{{"<expression>"}},
 	},
 	{"<argDefs>",
@@ -108,7 +108,7 @@ static const unordered_map<string, vector<vector<string>>> rules{
 	{"<functionCall>",
 		{
 			{"<function>", "(", ")"},
-			{"<function>", "(", "<args>", ")"},
+			{"<function>", "(", "<functions>", ")"},
 		}
 	},
 	{"<literal>",

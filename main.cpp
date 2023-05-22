@@ -1,14 +1,14 @@
 #include "./IntermediateCodeGenerator/intermediateGen.hpp"
 #include "./LexicalAnalysis/Lexer.hpp"
 #include "./Preprocessor/Preprocessor.hpp"
-#include "./SyntaxAnalysis/ParseNode.hpp"
 #include "./SemanticAnalysis/semanticAnalysis.hpp"
+#include "./SyntaxAnalysis/ParseNode.hpp"
 
 #include <iostream>
 #include <string>
 using namespace std;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
 	if (argc != 2) {
 		cout << "Format: erosion <filename>\n";
 		return 1;
@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	stringstream *str = preprocess(argv[1]);
+	stringstream* str = preprocess(argv[1]);
 	if (str == nullptr) {
 		return 1;
 	}
@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
 
 	// lexer.expressify();
 
-	ParseNode *ast = new ParseNode(&lexer);
+	ParseNode* ast = new ParseNode(&lexer);
 	if (!ast->build()) {
 		ast->print();
 		delete ast;
@@ -43,6 +43,7 @@ int main(int argc, char *argv[]) {
 	Diagnoser diagnoser = Diagnoser();
 	if (!diagnoser.diagnose(ast)) {
 		ast->print();
+		delete ast;
 		cerr << "\x1b[31m" << diagnoser.error << "\x1b[0m" << endl;
 		return 1;
 	}
