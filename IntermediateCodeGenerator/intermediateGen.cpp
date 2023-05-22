@@ -30,7 +30,7 @@ string IRGenerator::labelify() {
 
 int IRGenerator::generateIR(ParseNode *root, vector<string>& code) {
 	if (root->type == "<func>") {
-
+		st.push({SENTINEL, 8});
 	}
 
 	else if (root->type == "<def>") {
@@ -41,7 +41,7 @@ int IRGenerator::generateIR(ParseNode *root, vector<string>& code) {
 				// TODO: Make semantics error if its not a literal
 				Thing thing{};
 				// TODO: Parse string escape sequences somewhere earlier
-				ParseNode* child = root->children[2]->children[0];
+				ParseNode* child = root->children[3]->children[0];
 				if (child->type == "<stringLiteral>") {
 					thing.size = child->val.size() - 1;
 					thing.data = malloc(thing.size);
@@ -54,6 +54,8 @@ int IRGenerator::generateIR(ParseNode *root, vector<string>& code) {
 						*(float*)thing.data = stof(child->val);
 					} else if (root->children[0]->val == "double") {
 						*(double*)thing.data = stod(child->val);
+					} else if (root->children[0]->val == "bool") {
+						*(char*)thing.data = child->val == "true";
 					} else {
 						uint64_t tmp;
 						if (child->val[0] == '-') {
@@ -66,6 +68,35 @@ int IRGenerator::generateIR(ParseNode *root, vector<string>& code) {
 				}
 				data.push_back({root->children[1]->val, thing});
 			}
+		} else {
+			if (root->children.size() != 2) { // definition also
+				ParseNode* child = root->children[3]->children[0];
+				if (child->type == "<stringLiteral>") {
+					Thing thing{};
+					thing.size = child->val.size() - 1;
+					thing.data = malloc(thing.size);
+					memcpy(thing.data, child->val.c_str() + 1, thing.size - 1);
+					((char *)thing.data)[thing.size - 1] = '\0';
+					data.push_back({root->children[1]->val, thing});
+				} else {
+					uint64_t tmp;
+					if (root->children[0]->val == "float") {
+						*(float*)&tmp = stof(child->val);
+					} else if (root->children[0]->val == "double") {
+						*(double*)&tmp = stod(child->val);
+					} else if (root->children[0]->val == "bool") {
+						*(char*)&tmp = child->val == "true";
+					} else {
+						if (child->val[0] == '-') {
+							tmp = stoll(child->val);
+						} else {
+							tmp = stoull(child->val);
+						}
+					}
+					st.push({root->children[1]->val, tmp});
+					code.push_back("push L(" + to_string(sizes.at(root->children[0]->val)) + ')' + to_string(tmp));
+				}
+			}
 		}
 	}
 
@@ -76,6 +107,9 @@ int IRGenerator::generateIR(ParseNode *root, vector<string>& code) {
 	}
 
 	else if (root->type == "<if>") {
+
+		// New scope
+		st.push({SENTINEL, 0});
 
 		// gen jmp
 		string label = labelify();
@@ -92,9 +126,15 @@ int IRGenerator::generateIR(ParseNode *root, vector<string>& code) {
 
 		// gen label
 		code.push_back(label + ": ; IF end");
+
+		// exit scope
+		st.pop();
 	}
 
 	else if (root->type == "<while>") {
+
+		// New scope
+		st.push({SENTINEL, 0});
 
 		// gen jmp
 		string first = labelify();
@@ -114,9 +154,15 @@ int IRGenerator::generateIR(ParseNode *root, vector<string>& code) {
 		// gen loop jmp
 		code.push_back("jmp " + first);
 		code.push_back(second + ": ; WHILE end");
+
+		// exit scope
+		st.pop();
 	}
 
 	else if (root->type == "<for>") {
+
+		// New scope
+		st.push({SENTINEL, 0});
 
 		// gen declar
 		generateIR(root->children[0], code);
@@ -124,7 +170,7 @@ int IRGenerator::generateIR(ParseNode *root, vector<string>& code) {
 		// gen label
 		string first = labelify();
 		string second = labelify();
-		code.push_back(first + ":");
+		code.push_back(first + ": ; FOR start");
 
 		// gen jmp
 		generateIR(root->children[1], code);
@@ -145,7 +191,10 @@ int IRGenerator::generateIR(ParseNode *root, vector<string>& code) {
 		code.push_back("jmp " + first);
 
 		// gen escape label
-		code.push_back(second + ":");
+		code.push_back(second + ": ; FOR end");
+
+		// exit scope
+		st.pop();
 	}
 
 	else if (root->type == "<assignment>") {
@@ -222,10 +271,6 @@ int IRGenerator::generateIR(ParseNode *root, vector<string>& code) {
 		for (int i = 0; i < root->children.size(); i++) {
 			generateIR(root->children[i], code);
 		}
-	}
-
-	else if (root->type == "<def>") {
-		generateIR(root->children[3], code);
 	}
 
 	else {
