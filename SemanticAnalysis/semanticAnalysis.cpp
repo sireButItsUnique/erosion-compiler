@@ -99,9 +99,11 @@ bool Diagnoser::checkDefine(ParseNode* root, string varName) {
 		return (root->val != varName);
 	}
 
-	for (auto child : root->children) {
-		return checkDefine(child, varName);
+	for (int i = 0; i < root->children.size(); i++) {
+		return checkDefine(root->children[i], varName);
 	}
+	
+	return true;
 }
 
 // TODO: When we really support custom types we need to make a casting checker
@@ -294,7 +296,7 @@ void Diagnoser::hoist(ParseNode* root) {
 	for (int i = 0; i < root->children.size(); i++) {
 		ParseNode* child = root->children[i];
 
-		if (child->type == "<statements>" || child->type == "<functions>" || child->type == "<argDefs>" || child->type == "<conditional>" ||
+		if (child->type == "<statements>" || child->type == "<functions>" || child->type == "<conditional>" ||
 			child->type == "<expression>" || child->type == "<statement>" || child->type == "<declaration>") {
 
 			// erase the child from the root

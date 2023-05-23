@@ -3,7 +3,7 @@
 
 class Diagnoser {
 private:
-	unordered_set<string> types = {"int", "float", "double", "long", "short", "bool", "string", "void"};
+	unordered_set<string> types = {"int", "float", "double", "bool", "string", "void"};
 	unordered_map<string, vector<string>> functions; // name, types; holds all the functions currently defined in the program
 	// Stack of scopes, front = current scope, back = global scope
 	deque<unordered_map<string, string>> scopes = {}; // name, type

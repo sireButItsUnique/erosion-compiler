@@ -12,7 +12,7 @@ static const unordered_map<string, vector<vector<string>>> rules{
 	{"<program>",
 		{
 			{"<func>"},
-			{"<statements>"},
+			{"<statement>"},
 		}
 	},
 	{"<statements>",

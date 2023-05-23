@@ -56,6 +56,7 @@ int main(int argc, char* argv[]) {
 	IRGenerator irGen = IRGenerator();
 	vector<string> ir;
 	irGen.generateIR(ast, ir);
+
 	for (auto line : ir) {
 		cout << line << endl;
 	}
