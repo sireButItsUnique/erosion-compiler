@@ -152,22 +152,25 @@ void IRGenerator::generateIR(ParseNode* root, vector<string>& code) {
 	}
 
 	else if (root->type == "<literal>") {
-		if (root->children[0]) {}
+		ParseNode* child = root->children[0];
 
-		// for string literals:
-		// a = "abc"
-		// put it into data
-		// everything else:
-		// push onto stack (st) the placeholder of length 8 bytes
+		// for strings
 
-		// once literal base case here is handled
-		
-		// inside <assignment>
-		// e.g. var:int a = 5 + (2 * 3)
-		// steps:
-		// 1) offload right hand side (expression) recursively into unary / binExp
-		// 2) push this: "pop " + findVar("a"); // returns "pop ...(4)a" to code
-		// lastly, pop from st
+		if (child->type == "<stringLiteral>") {
+			Thing thing = {};
+			thing.size = child->val.size() - 1;
+			thing.data = malloc(thing.size);
+
+			memcpy(thing.data, child->val.c_str() + 1, thing.size - 1);
+
+			data.push_back({child->val, thing});
+		}
+
+		// every other type of literal
+
+		else {
+			st.push_front({PLACEHOLDER, 8});
+		}
 	}
 
 	else if (root->type == "<if>") {
@@ -284,7 +287,18 @@ void IRGenerator::generateIR(ParseNode* root, vector<string>& code) {
 	}
 
 	else if (root->type == "<assignment>") {
-		
+		// TODO: finish the assignment
+	
+		// inside <assignment>
+		// e.g. var:int a = 5 + (2 * 3)
+		// steps:
+		// 1) offload right hand side (expression) recursively into unary / binExp
+	
+		// steps 2 and three are as below:
+		string name = root->children[0]->val;
+		code.push_back("pop " + findVar(name));
+
+		st.pop_front();
 	}
 
 	else if (root->type == "<unaryExpression>") {
