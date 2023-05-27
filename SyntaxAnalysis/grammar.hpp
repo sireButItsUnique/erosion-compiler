@@ -68,6 +68,16 @@ static const unordered_map<string, vector<vector<string>>> rules{
 			{"if", "(", "<expression>", ")", "{", "<statements>", "}"},
 		}
 	},
+	{"<elif>",
+		{
+			{"elif", "(", "<expression>", ")", "{", "<statements>", "}"},
+		}
+	},
+	{"<else>",
+		{
+			{"else", "{", "<expression>", "}"},
+		}
+	},
 	{"<while>",
 		{
 			{"while", "(", "<expression>", ")", "{", "<statements>", "}"},
