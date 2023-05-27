@@ -14,7 +14,7 @@ stringstream* preprocess(string fileName) {
 	while (getline(source, buffer)) {
 		lineCnt++;
 		size_t commentPos = buffer.find("//");
-		while (commentPos != string::npos) {
+		while (commentPos != string::npos) { 
 			size_t quoteCnt = 0;
 			for (auto it = buffer.begin(); it < buffer.begin() + commentPos; it++) {
 				if (it == buffer.begin() || *(it - 1) != '\\') {
@@ -30,7 +30,8 @@ stringstream* preprocess(string fileName) {
 			commentPos = buffer.find("//", commentPos + 1);
 		}
 
-		if (!buffer.empty()) {
+		//checking either if line is empty or pure whitespace
+		if (!buffer.empty() && count_if(buffer.begin(), buffer.end(), [](char c) {return c == ' ' || c == '\t';}) != buffer.size()) {
 			*res << "爨" << lineCnt << " " << buffer << endl; // dont question it
 		}
 	}

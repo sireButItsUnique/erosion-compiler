@@ -13,7 +13,6 @@ Lexer::Lexer(stringstream* sourceFile) {
 		this->source += buffer + (char)sourceFile->peek();
 	}
 
-
 	return;
 }
 
@@ -28,17 +27,20 @@ SyntaxToken* Lexer::nextToken(bool expressifying) {
 		return nullptr;
 	}
 
-	while (source[pos] == ' ' || source[pos] == '\n') {
+	//skip white spaces
+	while (source[pos] == ' ' || source[pos] == '\t' || source[pos] == '\n') {
 		if (source[pos] == '\n') {
 			lineNum++;
 		}
 		pos++;
 	}
 
+	//leaving
 	if (pos >= source.size()) {
 		return nullptr;
 	}
 
+	//line cnt
 	if (source.substr(pos, 3) == "爨") {
 		pos += 3;
 		lineNum = stoi(source.substr(pos, source.find(' ', pos) - pos));

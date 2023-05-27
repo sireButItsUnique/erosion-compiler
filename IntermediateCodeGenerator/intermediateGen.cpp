@@ -41,8 +41,8 @@ void IRGenerator::printStack() {
 
 void IRGenerator::generateIR(ParseNode* root, vector<string>& code) {
 	if (root->type == "<func>") {
-		st.push_front({PLACEHOLDER, 8}); // return address
-		st.push_front({PLACEHOLDER, 8}); // old rbp
+		st.push_front({PLACEHOLDER + string("ret_addr"), 8}); // return address
+		st.push_front({PLACEHOLDER + string("old_rbp"), 8}); // old rbp
 		code.push_back(root->children[1]->val + ":");
 		code.push_back("prologue");
 		int size = 0;
@@ -130,6 +130,7 @@ void IRGenerator::generateIR(ParseNode* root, vector<string>& code) {
 	}
 
 	else if (root->type == "<return>") {
+		code.push_back("epilogue");
 		if (root->children.size() == 0) {
 			code.push_back("ret -");
 		} else {
@@ -140,15 +141,6 @@ void IRGenerator::generateIR(ParseNode* root, vector<string>& code) {
 				code.push_back("ret S0");
 			}
 		}
-
-		// exit scope
-		int size = 0;
-		// keep going until we hit the scope marker (funcName, 0)
-		while (st.front().first != currentLabel) {
-			size += st.front().second;
-			st.pop_front();
-		}
-		st.pop_front();
 	}
 
 	else if (root->type == "<literal>") {
