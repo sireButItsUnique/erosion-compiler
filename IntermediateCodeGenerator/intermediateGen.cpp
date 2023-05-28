@@ -50,7 +50,7 @@ void IRGenerator::generateIR(ParseNode* root, vector<string>& code) {
 			auto children = root->children[2]->children;
 			for (auto it = children.rbegin(); it < children.rend(); it++) {
 				st.push_front({(*it)->children[1]->val, sizes.at((*it)->children[0]->val)});
-				code.push_back("push A(" + (*it)->children[0]->val + ')' + (*it)->children[1]->val);
+				code.push_back("push A(" + to_string(sizes.at((*it)->children[0]->val)) + ')' + (*it)->children[1]->val);
 			}
 		}
 		printStack();
@@ -138,7 +138,7 @@ void IRGenerator::generateIR(ParseNode* root, vector<string>& code) {
 				code.push_back("ret C" + root->children[0]->children[0]->val);
 			} else {
 				generateIR(root->children[0], code);
-				code.push_back("ret S0");
+				code.push_back("ret pop");
 			}
 		}
 	}
@@ -161,8 +161,14 @@ void IRGenerator::generateIR(ParseNode* root, vector<string>& code) {
 		// every other type of literal
 
 		else {
+			code.push_back("push C" + child->val);
 			st.push_front({PLACEHOLDER, 8});
 		}
+	}
+
+	else if (root->type == "<variable>") {
+		code.push_back("push " + findVar(root->val));
+		st.push_front({root->val, 8});
 	}
 
 	else if (root->type == "<if>") {
@@ -182,13 +188,83 @@ void IRGenerator::generateIR(ParseNode* root, vector<string>& code) {
 			generateIR(root->children[i], code);
 		}
 
+		string endLabel = labelify();
+		code.push_back("jmp " + endLabel);
+
 		// gen label
 		code.push_back(label + ": ; IF end");
+		code.push_back(endLabel + ":");
 
 		// exit scope
 		int size = 0;
 		// keep going until we hit the scope marker (PLACEHOLDER, 0)
-		while (st.front().second != 0) {
+		while (st.front().first != PLACEHOLDER || st.front().second != 0) {
+			size += st.front().second;
+			st.pop_front();
+		}
+		st.pop_front();
+		if (size != 0) {
+			code.push_back("dealloc " + to_string(size));
+		}
+	}
+
+	else if (root->type == "<elif>") {
+		string prevLabel = code.back();
+		prevLabel = prevLabel.substr(0, prevLabel.size() - 1);
+		code.pop_back();
+
+		// enter scope
+		st.push_front({PLACEHOLDER, 0});
+
+		// gen jmp
+		string label = labelify();
+		generateIR(root->children[0], code);
+		st.pop_front();
+		code.push_back("; IF start");
+		code.push_back("jz " + label);
+
+		// gen contents
+		for (int i = 1; i < root->children.size(); i++) {
+			generateIR(root->children[i], code);
+		}
+
+		code.push_back("jmp " + prevLabel);
+
+		// gen label
+		code.push_back(label + ": ; IF end");
+		code.push_back(prevLabel + ":");
+
+		// exit scope
+		int size = 0;
+		// keep going until we hit the scope marker (PLACEHOLDER, 0)
+		while (st.front().first != PLACEHOLDER || st.front().second != 0) {
+			size += st.front().second;
+			st.pop_front();
+		}
+		st.pop_front();
+		if (size != 0) {
+			code.push_back("dealloc " + to_string(size));
+		}
+	}
+
+	else if (root->type == "<else>") {
+		string prevLabel = code.back();
+		prevLabel = prevLabel.substr(0, prevLabel.size() - 1);
+		code.pop_back();
+
+		// enter scope
+		st.push_front({PLACEHOLDER, 0});
+
+		// gen contents
+		for (auto child : root->children) {
+			generateIR(child, code);
+		}
+		code.push_back(prevLabel + ":");
+
+		// exit scope
+		int size = 0;
+		// keep going until we hit the scope marker (PLACEHOLDER, 0)
+		while (st.front().first != PLACEHOLDER || st.front().second != 0) {
 			size += st.front().second;
 			st.pop_front();
 		}
@@ -279,14 +355,8 @@ void IRGenerator::generateIR(ParseNode* root, vector<string>& code) {
 	}
 
 	else if (root->type == "<assignment>") {
-		// TODO: finish the assignment
-	
-		// inside <assignment>
-		// e.g. var:int a = 5 + (2 * 3)
-		// steps:
-		// 1) offload right hand side (expression) recursively into unary / binExp
-	
-		// steps 2 and three are as below:
+		generateIR(root->children[2], code);
+
 		string name = root->children[0]->val;
 		code.push_back("pop " + findVar(name));
 
@@ -298,15 +368,8 @@ void IRGenerator::generateIR(ParseNode* root, vector<string>& code) {
 		code.push_back("; start unary expression");
 
 		// load operand
-		if (root->children[1]->type == "<literal>") {
-			code.push_back("push C" + root->children[1]->children[0]->val);
-			st.push_front({PLACEHOLDER, 8});
-		} else if (root->children[1]->type == "<variable>") {
-			code.push_back("push " + findVar(root->children[1]->val));
-			st.push_front({PLACEHOLDER, 8});
-		} else {
-			generateIR(root->children[1], code);
-		}
+		generateIR(root->children[1], code);
+
 		st.pop_front();
 
 		code.push_back(ops.at(root->children[0]->val + 'u'));
@@ -315,30 +378,14 @@ void IRGenerator::generateIR(ParseNode* root, vector<string>& code) {
 	}
 
 	else if (root->type == "<binaryExpression>") {
-
 		code.push_back("; start binary expression");
 
 		// first operand
-		if (root->children[0]->type == "<literal>") {
-			code.push_back("push C" + root->children[0]->children[0]->val);
-			st.push_front({PLACEHOLDER, 8});
-		} else if (root->children[0]->type == "<variable>") {
-			code.push_back("push " + findVar(root->children[0]->val));
-			st.push_front({PLACEHOLDER, 8});
-		} else {
-			generateIR(root->children[0], code);
-		}
+		generateIR(root->children[0], code);
 
 		// second operand
-		if (root->children[2]->type == "<literal>") {
-			code.push_back("push C" + root->children[2]->children[0]->val);
-			st.push_front({PLACEHOLDER, 8});
-		} else if (root->children[2]->type == "<variable>") {
-			code.push_back("push " + findVar(root->children[2]->val));
-			st.push_front({PLACEHOLDER, 8});
-		} else {
-			generateIR(root->children[2], code);
-		}
+		generateIR(root->children[2], code);
+
 		st.pop_front();
 		st.pop_front();
 
@@ -350,14 +397,20 @@ void IRGenerator::generateIR(ParseNode* root, vector<string>& code) {
 	else if (root->type == "<functionCall>") {
 		string funcName = root->children[0]->val;
 
-		// no arguments
-
-		if (root->children.size() == 1) {
-			code.push_back("call " + funcName);
-			st.push_front({PLACEHOLDER, 8});
+		// evaluate all arguments
+		// start from the back; good convention because pushing onto a stack (puts it into the right order)
+		for (int i = root->children.size() - 1; i > 0; i--) {
+			generateIR(root->children[i], code);
 		}
 
-		// TODO: Add ways to handle functionCall arguments
+		int size = 0;
+		auto it = st.begin();
+		for (int i = 1; i < root->children.size(); i++) {
+			code.push_back("arg S(8)" + to_string(size));
+			size += (it++)->second;
+		}
+
+		code.push_back("call " + funcName);
 	}
 
 	else if (root->type == "<program>") {

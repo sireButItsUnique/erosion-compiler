@@ -29,7 +29,7 @@ private:
 	/**
 	 * @brief finds a variable
 	 * @param var the name of the variable
-	 * @return a string addressing the variable 
+	 * @return a string addressing the variable
 	 */
 	string findVar(string);
 

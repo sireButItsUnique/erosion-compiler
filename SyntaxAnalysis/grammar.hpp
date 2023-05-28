@@ -33,7 +33,7 @@ static const unordered_map<string, vector<vector<string>>> rules{
 			{"func", ":", "<type>", "<function>", "(", ")", "{", "<statements>", "}"},
 		}
 	},
-	{"<functions>",
+	{"<args>",
 		{{"<expression>"}},
 	},
 	{"<argDefs>",
@@ -50,6 +50,8 @@ static const unordered_map<string, vector<vector<string>>> rules{
 			{"<while>"},
 			{"<for>"},
 			{"<if>"},
+			{"<elif>"},
+			{"<else>"},
 		}
 	},
 	{"<return>",
@@ -75,7 +77,7 @@ static const unordered_map<string, vector<vector<string>>> rules{
 	},
 	{"<else>",
 		{
-			{"else", "{", "<expression>", "}"},
+			{"else", "{", "<statements>", "}"},
 		}
 	},
 	{"<while>",
@@ -118,7 +120,7 @@ static const unordered_map<string, vector<vector<string>>> rules{
 	{"<functionCall>",
 		{
 			{"<function>", "(", ")"},
-			{"<function>", "(", "<functions>", ")"},
+			{"<function>", "(", "<args>", ")"},
 		}
 	},
 	{"<literal>",

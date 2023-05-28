@@ -42,6 +42,32 @@ bool Diagnoser::diagnose(ParseNode* root) {
 	// clean
 	clean(root);
 
+	// recurse
+	string prev = "";
+
+	// penetrating thru all the lil kids* i play genshin bro (okay fine)
+	for (int i = 0; i < root->children.size(); i++) {
+		ParseNode* child = root->children[i];
+
+		if (child->type == "<elif>" || child->type == "<else>") {
+			if (prev != "<elif>" && prev != "<if>") {
+				error = "Invalid \"elif\"/\"else\" without an initial if";
+				return false;
+			}
+
+			// TODO: attempt to bundle
+			if (true) {
+			} else if (child->type == "<else>" || (i == root->children.size() - 1) || (root->children[i + 1]->type != "<elif>" && root->children[i + 1]->type != "<else>")) {
+			}
+		}
+
+		// diagnosing child
+		if (!diagnose(child)) {
+			return false;
+		}
+		prev = child->type;
+	}
+
 	// check returns
 	if (root->type == "<func>") {
 		if (checkReturns(root) != functions.at(insideFunc)[0]) {
@@ -50,13 +76,7 @@ bool Diagnoser::diagnose(ParseNode* root) {
 		}
 	}
 
-	// recurse
-	for (auto child : root->children) {
-		if (!diagnose(child)) {
-			return false;
-		}
-	}
-
+	// scope stuff
 	if (newScope) {
 		scopes.pop_front();
 	}
@@ -102,7 +122,7 @@ bool Diagnoser::checkDefine(ParseNode* root, string varName) {
 	for (int i = 0; i < root->children.size(); i++) {
 		return checkDefine(root->children[i], varName);
 	}
-	
+
 	return true;
 }
 
@@ -117,7 +137,7 @@ string Diagnoser::checkReturns(ParseNode* root) {
 				return "void";
 			}
 
-			ParseNode* child = node->children[1]->children[0];
+			ParseNode* child = node->children[0];
 
 			if (child->type == "<literal>") {
 				if (child->children[0]->type == "<stringLiteral>") {
@@ -131,9 +151,15 @@ string Diagnoser::checkReturns(ParseNode* root) {
 				} else {
 					return functions.at(insideFunc)[0];
 				}
-			} else if (child->type == "<expression>") {
+			} else if (child->type == "<binaryExpression>" || child->type == "<unaryExpression>") {
 				// TODO: check if expression is a string
 				return functions.at(insideFunc)[0];
+			} else if (child->type == "<functionCall>") {
+				if (functions.at(child->children[0]->val)[0] == "string") {
+					return "string";
+				} else {
+					return functions.at(insideFunc)[0];
+				}
 			}
 		}
 	}
@@ -226,14 +252,14 @@ bool Diagnoser::check(ParseNode* root) {
 			error = "Function \"" + root->children[0]->val + "\" does not exist";
 			return false;
 		}
-		if (callArgs->type == "<functions>") {
+		if (callArgs->type == "<args>") {
 			if (callArgs->children.size() != functions.at(root->children[0]->val).size() - 1) {
 				error = "Function \"" + root->children[0]->val + "\" requires " + to_string(functions.at(root->children[0]->val).size()) + " arguments, " +
 						to_string(callArgs->children.size()) + " provided";
 				return false;
 			}
 			vector<string>& argTypes = functions.at(root->children[0]->val); // types of arguments in function definition
-			for (int i = 1; i < argTypes.size(); i++) {
+			for (int i = 0; i < callArgs->children.size(); i++) {
 				ParseNode* child = callArgs->children[i];
 				if (child->children[0]->type == "<variable>") {
 					if (queryVar(child->children[0]->val).empty()) {
@@ -296,8 +322,8 @@ void Diagnoser::hoist(ParseNode* root) {
 	for (int i = 0; i < root->children.size(); i++) {
 		ParseNode* child = root->children[i];
 
-		if (child->type == "<statements>" || child->type == "<functions>" || child->type == "<conditional>" ||
-			child->type == "<expression>" || child->type == "<statement>" || child->type == "<declaration>") {
+		if (child->type == "<statements>" || child->type == "<args>" || child->type == "<conditional>" || child->type == "<expression>" ||
+			child->type == "<statement>" || child->type == "<declaration>") {
 
 			// erase the child from the root
 			root->children.erase(root->children.begin() + i);

@@ -55,7 +55,7 @@ ParseNode::~ParseNode() {
 }
 
 void ParseNode::updateWhitelist() {
-	if (type == "<program>" || type == "<statements>" || type == "<functions>" || type == "<argDefs>") {
+	if (type == "<program>" || type == "<statements>" || type == "<args>" || type == "<argDefs>") {
 		return;
 	}
 
@@ -143,7 +143,7 @@ bool ParseNode::findPath(SyntaxToken* token, stack<int>& res, string type, int d
 
 	int idx = children.size();
 
-	if (depth || this->type == "<program>" || this->type == "<statements>" || this->type == "<functions>" || this->type == "<argDefs>") {
+	if (depth || this->type == "<program>" || this->type == "<statements>" || this->type == "<args>" || this->type == "<argDefs>") {
 		idx = 0;
 	}
 
@@ -236,7 +236,7 @@ bool ParseNode::handleToken(SyntaxToken* token) {
 					tmp2->children.push_back(tmp1);
 					return true;
 				}
-			} else if (type == "<functions>" || type == "<argDefs>") {
+			} else if (type == "<args>" || type == "<argDefs>") {
 				if (token->text == ",") {
 					if (children.back()->handleToken(lexer->nextToken())) {
 						updateCompleteness();
@@ -264,7 +264,7 @@ bool ParseNode::handleToken(SyntaxToken* token) {
 
 	// go into latest child node
 	else {
-		if (children.back()->type == "<functions>" || children.back()->type == "<argDefs>") {
+		if (children.back()->type == "<args>" || children.back()->type == "<argDefs>") {
 
 			// Get last child of the argument list, see if it is done
 			if (children.back()->children.back()->complete && token->text == ")") {

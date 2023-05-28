@@ -16,6 +16,8 @@
 - Comments begin with a `;` and end at the end of the line
 
 ## Instructions
+- `prologue` - function prologue
+- `epilogue` - function epilogue
 - `mov dst src` (dst = destination; src = source)
 - `(arithmetic) dst(src1) src2` (dst = dst op src2)
 - `push src` (push src on to stack)
