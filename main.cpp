@@ -1,3 +1,4 @@
+#include "./FinalCodeGenerator/finalGen.hpp"
 #include "./IntermediateCodeGenerator/intermediateGen.hpp"
 #include "./LexicalAnalysis/Lexer.hpp"
 #include "./Preprocessor/Preprocessor.hpp"
@@ -56,7 +57,7 @@ int main(int argc, char* argv[]) {
 	CodeGenerator irGen = CodeGenerator();
 	vector<string> ir;
 	irGen.generateIR(ast, ir);
-	vector<string> output;
+	deque<string> output;
 	irGen.generatex86(output, ir);
 
 	ofstream file("out.asm");
@@ -66,6 +67,8 @@ int main(int argc, char* argv[]) {
 	}
 
 	cout << endl;
+
+	optimize(output);
 
 	for (auto line : output) {
 		file << line << '\n';

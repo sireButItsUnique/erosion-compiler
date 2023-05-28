@@ -1,6 +1,6 @@
 #include "finalGen.hpp"
 
-void parseArg(string instr, string& arg, vector<string>& output) {
+void parseArg(string instr, string& arg, deque<string>& output) {
 	if (arg[0] == 'A') {
 		output.push_back(instr + " r15");
 	} else if (arg[0] == 'S') {
@@ -147,7 +147,7 @@ void parseArg(string instr, string& arg, vector<string>& output) {
 	}
 }
 
-void CodeGenerator::generatex86(vector<string>& output, vector<string>& ir) {
+void CodeGenerator::generatex86(deque<string>& output, vector<string>& ir) {
 	if (data.size()) {
 		output.push_back("section .rodata");
 	}
@@ -261,21 +261,21 @@ void CodeGenerator::generatex86(vector<string>& output, vector<string>& ir) {
 			output.push_back("pop rdx");
 			output.push_back("pop rax");
 			output.push_back("cmp rax,rdx");
-			output.push_back("setl ale");
+			output.push_back("setle al");
 			output.push_back("movzx eax,al");
 			output.push_back("push rax");
 		} else if (tokens[0] == "cmpg") {
 			output.push_back("pop rdx");
 			output.push_back("pop rax");
 			output.push_back("cmp rax,rdx");
-			output.push_back("setl ag");
+			output.push_back("setg al");
 			output.push_back("movzx eax,al");
 			output.push_back("push rax");
 		} else if (tokens[0] == "cmpge") {
 			output.push_back("pop rdx");
 			output.push_back("pop rax");
 			output.push_back("cmp rax,rdx");
-			output.push_back("setl age");
+			output.push_back("setge al");
 			output.push_back("movzx eax,al");
 			output.push_back("push rax");
 		} else if (tokens[0] == "cmpe") {
@@ -343,4 +343,34 @@ void CodeGenerator::generatex86(vector<string>& output, vector<string>& ir) {
 	output.push_back("mov edi,eax");
 	output.push_back("mov eax,60");
 	output.push_back("syscall");
+}
+
+void parse(string& line, vector<string>& args, string& instr) {
+	instr = line.substr(0, line.find(' '));
+	size_t j = -1;
+	do {
+		size_t k = j + 1;
+		j = line.find(',', k);
+		args.push_back(line.substr(k, j - k));
+	} while (j != string::npos);
+}
+
+void optimize(deque<string>& code) {
+	for (auto it = code.begin(); it != code.end(); it++) {
+		string& line = *it;
+		string instr, nextInstr;
+		vector<string> args, nextArgs;
+		parse(line, args, instr);
+		if (it + 1 == code.end()) {
+			return;
+		}
+		parse(*(it + 1), nextArgs, nextInstr);
+		if (instr == "mov" && nextInstr == "mov") {
+			if (args[0] == nextArgs[1]) {
+				it = code.erase(it);
+				*it = "mov " + nextArgs[0] + "," + args[1];
+				it--;
+			}
+		}
+	}
 }

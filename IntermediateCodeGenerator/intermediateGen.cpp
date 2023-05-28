@@ -53,7 +53,6 @@ void CodeGenerator::generateIR(ParseNode* root, vector<string>& code) {
 				code.push_back("push A(" + (*it)->children[0]->val + ')' + (*it)->children[1]->val);
 			}
 		}
-		printStack();
 		for (auto child : root->children) {
 			generateIR(child, code);
 		}
@@ -375,6 +374,7 @@ void CodeGenerator::generateIR(ParseNode* root, vector<string>& code) {
 	}
 
 	else if (root->type == "<binaryExpression>") {
+		printStack();
 		// first operand
 		generateIR(root->children[0], code);
 

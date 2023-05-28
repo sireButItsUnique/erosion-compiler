@@ -53,5 +53,5 @@ public:
 	 * @param output the file to write to
 	 * @param ir the intermediary representation
 	 */
-	void generatex86(vector<string>&, vector<string>&);
+	void generatex86(deque<string>&, vector<string>&);
 };
