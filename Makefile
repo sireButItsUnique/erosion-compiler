@@ -21,7 +21,7 @@ erosion: $(PCHS) $(OBJS)
 	g++ $(CFLAGS) $< -o $@
 
 %.o: %.cpp $(PCHS) Makefile
-	$(CC) $(CFLAGS) -H -Winvalid-pch -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
 	rm -f $(OBJS) $(PCHS) erosion
