@@ -5,10 +5,11 @@
 
 struct Thing {
 	int size;
+	string type;
 	void* data;
 };
 
-class IRGenerator {
+class CodeGenerator {
 private:
 	/**
 	 * @brief stack of variables and their sizes
@@ -17,7 +18,7 @@ private:
 	deque<pair<string, int>> st;
 	vector<pair<string, int>> bss;
 	vector<pair<string, Thing>> data;
-	unordered_map<string, int> sizes = {{"bool", 1}, {"int", 4}, {"float", 4}, {"double", 8}, {"void", 0}};
+	unordered_map<string, int> sizes = {{"bool", 8}, {"int", 8}, {"float", 8}, {"double", 8}, {"void", 0}};
 	int labelCnt = 0;
 	string currentLabel = "";
 
@@ -46,4 +47,11 @@ public:
 	 * @return how much stuff got pushed
 	 */
 	void generateIR(ParseNode* root, vector<string>&);
+
+	/**
+	 * @brief generates x86 assembly
+	 * @param output the file to write to
+	 * @param ir the intermediary representation
+	 */
+	void generatex86(vector<string>&, vector<string>&);
 };

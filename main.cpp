@@ -53,14 +53,26 @@ int main(int argc, char* argv[]) {
 
 	ast->print();
 
-	IRGenerator irGen = IRGenerator();
+	CodeGenerator irGen = CodeGenerator();
 	vector<string> ir;
 	irGen.generateIR(ast, ir);
+	vector<string> output;
+	irGen.generatex86(output, ir);
+
+	ofstream file("out.asm");
 
 	for (auto line : ir) {
 		cout << line << endl;
 	}
 
+	cout << endl;
+
+	for (auto line : output) {
+		file << line << '\n';
+		cout << line << endl;
+	}
+
+	file.close();
 	delete ast;
 
 	return 0;

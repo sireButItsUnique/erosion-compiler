@@ -6,11 +6,11 @@ const unordered_map<string, string> ops = {
 	{"==", "cmpe"}, {"!=", "cmpne"}, {"&", "and"},	{"^", "xor"},  {"|", "or"},		{"&&", "and"}, {"||", "or"},
 };
 
-string IRGenerator::labelify() {
+string CodeGenerator::labelify() {
 	return ".L" + to_string(labelCnt++);
 }
 
-string IRGenerator::findVar(string var) {
+string CodeGenerator::findVar(string var) {
 	for (auto v : bss) {
 		if (v.first == var) {
 			return "V(" + to_string(v.second) + ')' + var;
@@ -32,14 +32,14 @@ string IRGenerator::findVar(string var) {
 	terminate();
 }
 
-void IRGenerator::printStack() {
+void CodeGenerator::printStack() {
 	for (auto it = st.rbegin(); it < st.rend(); it++) {
 		cout << "\x1b[33m" << it->first << ' ' << it->second << "\x1b[0m\n";
 	}
 	cout << endl;
 }
 
-void IRGenerator::generateIR(ParseNode* root, vector<string>& code) {
+void CodeGenerator::generateIR(ParseNode* root, vector<string>& code) {
 	if (root->type == "<func>") {
 		st.push_front({PLACEHOLDER + string("ret_addr"), 8}); // return address
 		st.push_front({PLACEHOLDER + string("old_rbp"), 8}); // old rbp
@@ -50,13 +50,17 @@ void IRGenerator::generateIR(ParseNode* root, vector<string>& code) {
 			auto children = root->children[2]->children;
 			for (auto it = children.rbegin(); it < children.rend(); it++) {
 				st.push_front({(*it)->children[1]->val, sizes.at((*it)->children[0]->val)});
-				code.push_back("push A(" + to_string(sizes.at((*it)->children[0]->val)) + ')' + (*it)->children[1]->val);
+				code.push_back("push A(" + (*it)->children[0]->val + ')' + (*it)->children[1]->val);
 			}
 		}
 		printStack();
 		for (auto child : root->children) {
 			generateIR(child, code);
 		}
+		while (st.front().first != PLACEHOLDER + string("ret_addr")) {
+			st.pop_front();
+		}
+		st.pop_front();
 	}
 
 	else if (root->type == "<def>") {
@@ -130,7 +134,6 @@ void IRGenerator::generateIR(ParseNode* root, vector<string>& code) {
 	}
 
 	else if (root->type == "<return>") {
-		code.push_back("epilogue");
 		if (root->children.size() == 0) {
 			code.push_back("ret -");
 		} else {
@@ -180,7 +183,6 @@ void IRGenerator::generateIR(ParseNode* root, vector<string>& code) {
 		string label = labelify();
 		generateIR(root->children[0], code);
 		st.pop_front();
-		code.push_back("; IF start");
 		code.push_back("jz " + label);
 
 		// gen contents
@@ -192,8 +194,8 @@ void IRGenerator::generateIR(ParseNode* root, vector<string>& code) {
 		code.push_back("jmp " + endLabel);
 
 		// gen label
-		code.push_back(label + ": ; IF end");
-		code.push_back(endLabel + ":");
+		code.push_back(label + ':');
+		code.push_back(endLabel + ':');
 
 		// exit scope
 		int size = 0;
@@ -220,7 +222,6 @@ void IRGenerator::generateIR(ParseNode* root, vector<string>& code) {
 		string label = labelify();
 		generateIR(root->children[0], code);
 		st.pop_front();
-		code.push_back("; IF start");
 		code.push_back("jz " + label);
 
 		// gen contents
@@ -231,8 +232,8 @@ void IRGenerator::generateIR(ParseNode* root, vector<string>& code) {
 		code.push_back("jmp " + prevLabel);
 
 		// gen label
-		code.push_back(label + ": ; IF end");
-		code.push_back(prevLabel + ":");
+		code.push_back(label + ':');
+		code.push_back(prevLabel + ':');
 
 		// exit scope
 		int size = 0;
@@ -259,7 +260,7 @@ void IRGenerator::generateIR(ParseNode* root, vector<string>& code) {
 		for (auto child : root->children) {
 			generateIR(child, code);
 		}
-		code.push_back(prevLabel + ":");
+		code.push_back(prevLabel + ':');
 
 		// exit scope
 		int size = 0;
@@ -282,7 +283,7 @@ void IRGenerator::generateIR(ParseNode* root, vector<string>& code) {
 		// gen jmp
 		string first = labelify();
 		string second = labelify();
-		code.push_back(first + ": ; WHILE start");
+		code.push_back(first + ':');
 		generateIR(root->children[0], code);
 		st.pop_front();
 		code.push_back("jz " + second);
@@ -294,7 +295,7 @@ void IRGenerator::generateIR(ParseNode* root, vector<string>& code) {
 
 		// gen loop jmp
 		code.push_back("jmp " + first);
-		code.push_back(second + ": ; WHILE end");
+		code.push_back(second + ':');
 
 		// exit scope
 		int size = 0;
@@ -320,7 +321,7 @@ void IRGenerator::generateIR(ParseNode* root, vector<string>& code) {
 		// gen label
 		string first = labelify();
 		string second = labelify();
-		code.push_back(first + ": ; FOR start");
+		code.push_back(first + ':');
 
 		// gen jmp
 		generateIR(root->children[1], code);
@@ -339,7 +340,7 @@ void IRGenerator::generateIR(ParseNode* root, vector<string>& code) {
 		code.push_back("jmp " + first);
 
 		// gen escape label
-		code.push_back(second + ": ; FOR end");
+		code.push_back(second + ':');
 
 		// exit scope
 		int size = 0;
@@ -364,9 +365,6 @@ void IRGenerator::generateIR(ParseNode* root, vector<string>& code) {
 	}
 
 	else if (root->type == "<unaryExpression>") {
-
-		code.push_back("; start unary expression");
-
 		// load operand
 		generateIR(root->children[1], code);
 
@@ -374,12 +372,9 @@ void IRGenerator::generateIR(ParseNode* root, vector<string>& code) {
 
 		code.push_back(ops.at(root->children[0]->val + 'u'));
 		st.push_front({PLACEHOLDER, 8});
-		code.push_back("; end unary expression");
 	}
 
 	else if (root->type == "<binaryExpression>") {
-		code.push_back("; start binary expression");
-
 		// first operand
 		generateIR(root->children[0], code);
 
@@ -391,7 +386,6 @@ void IRGenerator::generateIR(ParseNode* root, vector<string>& code) {
 
 		code.push_back(ops.at(root->children[1]->val));
 		st.push_front({PLACEHOLDER, 8});
-		code.push_back("; end binary expression");
 	}
 
 	else if (root->type == "<functionCall>") {
