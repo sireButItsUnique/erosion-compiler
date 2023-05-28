@@ -2,7 +2,9 @@ SHELL=/bin/bash
 
 CC=g++
 CFLAGS=-std=c++20 -Wall -Wextra -pedantic -g -march=native
-SRCS=$(wildcard *.cpp) $(shell ls {FinalCodeGenerator,IntermediateCodeGenerator,LexicalAnalysis,Preprocessor,SemanticAnalysis,SyntaxAnalysis}/*.cpp)
+SRCS=$(wildcard *.cpp) $(shell ls */*.cpp)
+HDRS=$(shell ls */*.hpp)
+PCHS=$(HDRS:.hpp=.hpp.gch)
 OBJS=$(SRCS:.cpp=.o)
 
 debug: erosion
@@ -12,13 +14,14 @@ release: CFLAGS += -O2
 release: erosion
 	strip -s erosion
 
-erosion: $(OBJS)
+erosion: $(PCHS) $(OBJS)
 	$(CC) $(CFLAGS) -o erosion $(OBJS)
 
-SyntaxAnalysis/ParseNode.o: SyntaxAnalysis/grammar.hpp
+%.hpp.gch: %.hpp
+	g++ $(CFLAGS) $< -o $@
 
-%.o: %.cpp Makefile
-	$(CC) $(CFLAGS) -c $< -o $@
+%.o: %.cpp $(PCHS) Makefile
+	$(CC) $(CFLAGS) -H -Winvalid-pch -c $< -o $@
 
 clean:
-	rm -f $(OBJS) erosion
+	rm -f $(OBJS) $(PCHS) erosion
