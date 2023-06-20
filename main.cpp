@@ -7,9 +7,11 @@
 
 #include <iostream>
 #include <string>
+#include <sys/wait.h>
+#include <unistd.h>
 using namespace std;
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
 	if (argc != 2) {
 		cout << "Format: erosion <filename>\n";
 		return 1;
@@ -25,7 +27,7 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-	stringstream* str = preprocess(argv[1]);
+	stringstream *str = preprocess(argv[1]);
 	if (str == nullptr) {
 		return 1;
 	}
@@ -34,7 +36,7 @@ int main(int argc, char* argv[]) {
 
 	// lexer.expressify();
 
-	ParseNode* ast = new ParseNode(&lexer);
+	ParseNode *ast = new ParseNode(&lexer);
 	cerr << "\x1b[31m";
 	if (!ast->build()) {
 		cerr << "\x1b[0m";
@@ -77,6 +79,33 @@ int main(int argc, char* argv[]) {
 
 	file.close();
 	delete ast;
+
+	pid_t pid = fork();
+	if (pid == -1) {
+		// error
+		cerr << "Could not make child" << endl;
+	} else if (pid) {
+		// parent
+		waitpid(pid, NULL, 0);
+		remove("out.asm");
+	} else {
+		// child
+		execlp("sedimentation", "sedimentation", "-f", "elf", "out.asm", NULL);
+		return 0;
+	}
+
+	pid = fork();
+	if (pid == -1) {
+		// error
+		cerr << "Could not make child" << endl;
+	} else if (pid) {
+		// parent
+		waitpid(pid, NULL, 0);
+		remove("out.o");
+	} else {
+		// child
+		execlp("ld", "ld", "out.o", NULL);
+	}
 
 	return 0;
 }
