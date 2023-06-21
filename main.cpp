@@ -1,4 +1,5 @@
 #include "./FinalCodeGenerator/finalGen.hpp"
+#include "./IROptimize/irOptimize.hpp"
 #include "./IntermediateCodeGenerator/intermediateGen.hpp"
 #include "./LexicalAnalysis/Lexer.hpp"
 #include "./Preprocessor/Preprocessor.hpp"
@@ -11,7 +12,7 @@
 #include <unistd.h>
 using namespace std;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
 	if (argc != 2) {
 		cout << "Format: erosion <filename>\n";
 		return 1;
@@ -27,7 +28,7 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	stringstream *str = preprocess(argv[1]);
+	stringstream* str = preprocess(argv[1]);
 	if (str == nullptr) {
 		return 1;
 	}
@@ -36,7 +37,7 @@ int main(int argc, char *argv[]) {
 
 	// lexer.expressify();
 
-	ParseNode *ast = new ParseNode(&lexer);
+	ParseNode* ast = new ParseNode(&lexer);
 	cerr << "\x1b[31m";
 	if (!ast->build()) {
 		cerr << "\x1b[0m";
@@ -57,8 +58,11 @@ int main(int argc, char *argv[]) {
 	ast->print();
 
 	CodeGenerator irGen = CodeGenerator();
-	vector<string> ir;
+	deque<string> ir;
 	irGen.generateIR(ast, ir);
+
+	optimizeIR(ir);
+
 	deque<string> output;
 	irGen.generatex86(output, ir);
 
@@ -84,10 +88,16 @@ int main(int argc, char *argv[]) {
 	if (pid == -1) {
 		// error
 		cerr << "Could not make child" << endl;
+		remove("out.asm");
 	} else if (pid) {
 		// parent
-		waitpid(pid, NULL, 0);
+		int status;
+		waitpid(pid, &status, WUNTRACED);
 		remove("out.asm");
+		if (status) {
+			cerr << "Sedimentation assembler returned non-zero exit code " << status << endl;
+			return 1;
+		}
 	} else {
 		// child
 		execlp("sedimentation", "sedimentation", "-f", "elf", "out.asm", NULL);
@@ -98,10 +108,16 @@ int main(int argc, char *argv[]) {
 	if (pid == -1) {
 		// error
 		cerr << "Could not make child" << endl;
+		remove("out.o");
 	} else if (pid) {
 		// parent
-		waitpid(pid, NULL, 0);
+		int status;
+		waitpid(pid, &status, WUNTRACED);
 		remove("out.o");
+		if (status) {
+			cerr << "Linker returned non-zero exit code " << status << endl;
+			return 1;
+		}
 	} else {
 		// child
 		execlp("ld", "ld", "out.o", NULL);

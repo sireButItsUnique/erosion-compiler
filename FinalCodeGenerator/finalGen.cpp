@@ -1,153 +1,100 @@
 #include "finalGen.hpp"
 
-void parseArg(string instr, string& arg, deque<string>& output) {
+void parseArg(string instr, string arg, deque<string>& output) {
 	if (arg[0] == 'A') {
 		output.push_back(instr + " r15");
-	} else if (arg[0] == 'S') {
-		string res;
+	} else if (arg[0] == 'S' || arg[0] == 'V') {
+		string thing;
+		if (arg[0] == 'S') {
+			thing = "[rbp";
+			int off = stoi(arg.substr(4));
+			if (off) {
+				thing += to_string(-off);
+			}
+			thing += "]";
+		} else {
+			thing = "[rel " + arg.substr(4) + "]";
+		}
 		if (arg[2] == '1') {
 			if (instr == "push") {
-				if (arg[4] == '0') {
-					output.push_back("movzx ecx,byte [rsp]");
-				} else {
-					output.push_back("movzx ecx,byte [rsp+" + arg.substr(4) + ']');
-				}
-				output.push_back("sub rsp,1");
-				output.push_back("mov [rsp],cl");
-				return;
+				output.push_back("movzx cx,byte " + thing);
+				output.push_back("push cx");
 			} else if (instr == "pop") {
-				output.push_back("movzx ecx,byte [rsp]");
-				if (arg[4] == '0') {
-					output.push_back("mov [rsp],cl");
-				} else {
-					output.push_back("mov [rsp+" + arg.substr(4) + "],cl");
-				}
-				output.push_back("add rsp,1");
-				return;
+				output.push_back("pop cx");
+				output.push_back("mov " + thing + ",cl");
 			} else {
-				res = " byte ";
+				output.push_back(instr + " byte " + thing);
 			}
 		} else if (arg[2] == '2') {
 			if (instr == "push") {
-				if (arg[4] == '0') {
-					output.push_back("movzx ecx,word [rsp]");
-				} else {
-					output.push_back("movzx ecx,word [rsp+" + arg.substr(4) + ']');
-				}
-				output.push_back("sub rsp,2");
-				output.push_back("mov [rsp],cx");
-				return;
+				output.push_back("mov cx," + thing);
+				output.push_back("push cx");
 			} else if (instr == "pop") {
-				output.push_back("movzx ecx,word [rsp]");
-				if (arg[4] == '0') {
-					output.push_back("mov [rsp],cx");
-				} else {
-					output.push_back("mov [rsp+" + arg.substr(4) + "],cx");
-				}
-				output.push_back("add rsp,2");
-				return;
+				output.push_back("pop cx");
+				output.push_back("mov " + thing + ",cx");
 			} else {
-				res = " word ";
+				output.push_back(instr + " word " + thing);
 			}
 		} else if (arg[2] == '4') {
 			if (instr == "push") {
-				if (arg[4] == '0') {
-					output.push_back("mov ecx,[rsp]");
-				} else {
-					output.push_back("mov ecx,[rsp+" + arg.substr(4) + ']');
-				}
-				output.push_back("sub rsp,4");
-				output.push_back("mov [rsp],ecx");
-				return;
+				output.push_back("mov ecx,dword " + thing);
+				output.push_back("push rcx");
 			} else if (instr == "pop") {
-				output.push_back("mov ecx,[rsp]");
-				if (arg[4] == '0') {
-					output.push_back("mov [rsp],ecx");
-				} else {
-					output.push_back("mov [rsp+" + arg.substr(4) + "],ecx");
-				}
-				output.push_back("add rsp,4");
-				return;
+				output.push_back("pop rcx");
+				output.push_back("mov " + thing + ",ecx");
 			} else {
-				res = " dword ";
+				output.push_back(instr + " dword " + thing);
 			}
-		} else if (arg[2] == '8') {
-			if (instr == "push") {
-				if (arg[4] == '0') {
-					output.push_back("mov rcx,[rsp]");
-				} else {
-					output.push_back("mov rcx,[rsp+" + arg.substr(4) + ']');
-				}
-				output.push_back("sub rsp,8");
-				output.push_back("mov [rsp],rcx");
-				return;
-			} else if (instr == "pop") {
-				output.push_back("mov rcx,[rsp]");
-				if (arg[4] == '0') {
-					output.push_back("mov [rsp],rcx");
-				} else {
-					output.push_back("mov [rsp+" + arg.substr(4) + "],rcx");
-				}
-				output.push_back("add rsp,8");
-				return;
-			} else {
-				res = " qword ";
-			}
-		}
-		if (arg[4] == '0') {
-			output.push_back(instr + res + "[rsp]");
 		} else {
-			output.push_back(instr + res + "[rsp+" + arg.substr(4) + ']');
+			if (instr == "push") {
+				output.push_back("mov rcx," + thing);
+				output.push_back("push rcx");
+			} else if (instr == "pop") {
+				output.push_back("pop rcx");
+				output.push_back("mov qword " + thing + ",rcx");
+			} else {
+				output.push_back(instr + " qword " + thing);
+			}
 		}
 	} else if (arg[0] == 'C') {
 		if (instr == "push") {
-			output.push_back("sub rsp,8");
-			output.push_back("mov qword [rsp]," + arg.substr(1));
-		} else {
-			output.push_back(instr + arg.substr(1));
-		}
-	} else if (arg[0] == 'V') {
-		string res;
-		if (arg[2] == '1') {
-			if (instr == "push") {
-				output.push_back("movzx ecx,byte [rel " + arg.substr(1) + ']');
+			if (arg[2] == '1') {
 				output.push_back("sub rsp,1");
-				output.push_back("mov [rsp],cl");
-				return;
-			} else if (instr == "pop") {
-				output.push_back("movzx ecx,byte [rsp]");
-				output.push_back("mov [rel " + arg.substr(1) + "],cl");
-				output.push_back("add rsp,1");
-				return;
-			} else {
-				res = " byte ";
-			}
-		} else if (arg[2] == '2') {
-			res = " word ";
-		} else if (arg[2] == '4') {
-			if (instr == "push") {
-				output.push_back("mov ecx,[rel " + arg.substr(1) + ']');
+				output.push_back("mov byte [rsp]," + arg.substr(4));
+			} else if (arg[2] == '2') {
+				output.push_back("sub rsp,2");
+				output.push_back("mov word [rsp]," + arg.substr(4));
+			} else if (arg[2] == '4') {
 				output.push_back("sub rsp,4");
-				output.push_back("mov [rsp],ecx");
-				return;
-			} else if (instr == "pop") {
-				output.push_back("mov ecx,[rsp]");
-				output.push_back("mov [rel " + arg.substr(1) + "],ecx");
-				output.push_back("add rsp,4");
-				return;
-			} else {
-				res = " dword ";
+				output.push_back("mov dword [rsp]," + arg.substr(4));
+			} else if (arg[2] == '8') {
+				output.push_back("mov rcx," + arg.substr(4));
+				output.push_back("push rcx");
 			}
-		} else if (arg[2] == '8') {
-			res = " qword ";
+		} else {
+			output.push_back(instr + ' ' + arg.substr(4));
 		}
-		output.push_back(instr + res + " [rel " + arg.substr(1) + "]");
-	} else {
-		output.push_back(instr + " r14");
 	}
 }
 
-void CodeGenerator::generatex86(deque<string>& output, vector<string>& ir) {
+void parseMov(string dst, string src, deque<string>& output) {
+	parseArg("", dst, output);
+	string d = output.back();
+	output.pop_back();
+	parseArg("", src, output);
+	string s = output.back();
+	output.pop_back();
+	string regs[] = {" cl", " cx", " ecx", "", " rcx"};
+	if (((dst[0] == 'S' || dst[0] == 'V') && (src[0] == 'S' || src[0] == 'V')) || (dst[2] != src[2] && src[0] != 'C')) { // both memory or not same size
+		output.push_back("mov" + regs[(src[2] >> 1) - '0' / 2] + ',' + s);
+		string reg = regs[(dst[2] >> 1) - '0' / 2];
+		output.push_back("mov" + d + ',' + reg);
+		return;
+	}
+	output.push_back("mov" + d + ',' + s);
+}
+
+void CodeGenerator::generatex86(deque<string>& output, deque<string>& ir) {
 	if (data.size()) {
 		output.push_back("section .rodata");
 	}
@@ -219,16 +166,16 @@ void CodeGenerator::generatex86(deque<string>& output, vector<string>& ir) {
 			output.push_back("imul rdx");
 			output.push_back("push rax");
 		} else if (tokens[0] == "div") {
-			output.push_back("pop rdx");
+			output.push_back("pop rcx");
 			output.push_back("pop rax");
 			output.push_back("cqo");
-			output.push_back("idiv rdx");
+			output.push_back("idiv rcx");
 			output.push_back("push rax");
 		} else if (tokens[0] == "mod") {
-			output.push_back("pop rdx");
+			output.push_back("pop rcx");
 			output.push_back("pop rax");
 			output.push_back("cqo");
-			output.push_back("idiv rdx");
+			output.push_back("idiv rcx");
 			output.push_back("push rdx");
 		} else if (tokens[0] == "add") {
 			output.push_back("pop rdx");
@@ -311,6 +258,8 @@ void CodeGenerator::generatex86(deque<string>& output, vector<string>& ir) {
 			parseArg("push", tokens[1], output);
 		} else if (tokens[0] == "pop") {
 			parseArg("pop", tokens[1], output);
+		} else if (tokens[0] == "mov") {
+			parseMov(tokens[1], tokens[2], output);
 		} else if (tokens[0] == "call") {
 			output.push_back(line);
 		} else if (tokens[0] == "ret") {
@@ -324,6 +273,8 @@ void CodeGenerator::generatex86(deque<string>& output, vector<string>& ir) {
 			output.push_back("ret");
 		} else if (tokens[0] == "jmp") {
 			output.push_back(line);
+		} else if (tokens[0] == "alloc") {
+			output.push_back("sub rsp," + tokens[1]);
 		} else if (tokens[0][0] == 'j') {
 			output.push_back("pop rax");
 			if (tokens[0][1] == 'z') {
@@ -332,8 +283,6 @@ void CodeGenerator::generatex86(deque<string>& output, vector<string>& ir) {
 				output.push_back("cmp rax,rax");
 			}
 			output.push_back(tokens[0] + " " + tokens[1]);
-		} else if (tokens[0] == "alloc") {
-			output.push_back("sub rsp," + tokens[1]);
 		}
 	}
 
@@ -345,7 +294,7 @@ void CodeGenerator::generatex86(deque<string>& output, vector<string>& ir) {
 	output.push_back("syscall");
 }
 
-void parse(string& line, vector<string>& args, string& instr) {
+void parseX86(string& line, vector<string>& args, string& instr) {
 	instr = line.substr(0, line.find(' '));
 	size_t j = -1;
 	do {
@@ -356,21 +305,21 @@ void parse(string& line, vector<string>& args, string& instr) {
 }
 
 void optimize(deque<string>& code) {
-	for (auto it = code.begin(); it != code.end(); it++) {
-		string& line = *it;
-		string instr, nextInstr;
-		vector<string> args, nextArgs;
-		parse(line, args, instr);
-		if (it + 1 == code.end()) {
-			return;
-		}
-		parse(*(it + 1), nextArgs, nextInstr);
-		if (instr == "mov" && nextInstr == "mov") {
-			if (args[0] == nextArgs[1]) {
-				it = code.erase(it);
-				*it = "mov " + nextArgs[0] + "," + args[1];
-				it--;
-			}
-		}
-	}
+	// for (auto it = code.begin(); it != code.end(); it++) {
+	// 	string &line = *it;
+	// 	string instr, nextInstr;
+	// 	vector<string> args, nextArgs;
+	// 	parse(line, args, instr);
+	// 	if (it + 1 == code.end()) {
+	// 		return;
+	// 	}
+	// 	parse(*(it + 1), nextArgs, nextInstr);
+	// 	if (instr == "mov" && nextInstr == "mov") {
+	// 		if (args[0] == nextArgs[1]) {
+	// 			it = code.erase(it);
+	// 			*it = "mov " + nextArgs[0] + "," + args[1];
+	// 			it--;
+	// 		}
+	// 	}
+	// }
 }

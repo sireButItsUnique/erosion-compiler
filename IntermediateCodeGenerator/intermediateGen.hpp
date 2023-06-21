@@ -3,7 +3,7 @@
 
 #define PLACEHOLDER "驔"
 
-struct Thing {
+struct Blob {
 	int size;
 	string type;
 	void* data;
@@ -17,8 +17,8 @@ private:
 	 */
 	deque<pair<string, int>> st;
 	vector<pair<string, int>> bss;
-	vector<pair<string, Thing>> data;
-	unordered_map<string, int> sizes = {{"bool", 8}, {"int", 8}, {"float", 8}, {"double", 8}, {"void", 0}};
+	vector<pair<string, Blob>> data;
+	unordered_map<string, int> sizes = {{"bool", 1}, {"short", 2}, {"int", 4}, {"float", 4}, {"double", 8}, {"void", 0}};
 	int labelCnt = 0;
 	string currentLabel = "";
 
@@ -46,12 +46,12 @@ public:
 	 * @param code output vector representing our code
 	 * @return how much stuff got pushed
 	 */
-	void generateIR(ParseNode* root, vector<string>&);
+	void generateIR(ParseNode* root, deque<string>&);
 
 	/**
 	 * @brief generates x86 assembly
 	 * @param output the file to write to
 	 * @param ir the intermediary representation
 	 */
-	void generatex86(deque<string>&, vector<string>&);
+	void generatex86(deque<string>&, deque<string>&);
 };

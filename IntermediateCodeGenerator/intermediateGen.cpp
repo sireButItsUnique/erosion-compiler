@@ -21,12 +21,18 @@ string CodeGenerator::findVar(string var) {
 			return "V(" + to_string(v.second.size) + ')' + var;
 		}
 	}
-	int i = 0;
+	int i = -8;
+	bool inStack = false;
 	for (auto v : st) {
+		if (v.first == PLACEHOLDER "old_rbp") {
+			inStack = true;
+		} else if (!inStack) {
+			continue;
+		}
+		i += v.second;
 		if (v.first == var) {
 			return "S(" + to_string(v.second) + ')' + to_string(i);
 		}
-		i += v.second;
 	}
 	throw out_of_range("\x1b[91mYou fucked up big time\x1b[0m");
 	terminate();
@@ -39,27 +45,27 @@ void CodeGenerator::printStack() {
 	cout << endl;
 }
 
-void CodeGenerator::generateIR(ParseNode* root, vector<string>& code) {
+void CodeGenerator::generateIR(ParseNode* root, deque<string>& code) {
 	if (root->type == "<func>") {
-		st.push_front({PLACEHOLDER + string("ret_addr"), 8}); // return address
-		st.push_front({PLACEHOLDER + string("old_rbp"), 8}); // old rbp
+		st.push_back({PLACEHOLDER "ret_addr", 8}); // return address
+		st.push_back({PLACEHOLDER "old_rbp", 8}); // old rbp
 		code.push_back(root->children[1]->val + ":");
 		code.push_back("prologue");
 		int size = 0;
 		if (root->children[2]->type == "<argDefs>") {
 			auto children = root->children[2]->children;
 			for (auto it = children.rbegin(); it < children.rend(); it++) {
-				st.push_front({(*it)->children[1]->val, sizes.at((*it)->children[0]->val)});
+				st.push_back({(*it)->children[1]->val, sizes.at((*it)->children[0]->val)});
 				code.push_back("push A(" + (*it)->children[0]->val + ')' + (*it)->children[1]->val);
 			}
 		}
 		for (auto child : root->children) {
 			generateIR(child, code);
 		}
-		while (st.front().first != PLACEHOLDER + string("ret_addr")) {
-			st.pop_front();
+		while (st.back().first != PLACEHOLDER "ret_addr") {
+			st.pop_back();
 		}
-		st.pop_front();
+		st.pop_back();
 	}
 
 	else if (root->type == "<def>") {
@@ -68,45 +74,43 @@ void CodeGenerator::generateIR(ParseNode* root, vector<string>& code) {
 				bss.push_back({root->children[1]->val, sizes.at(root->children[0]->val)});
 			} else {
 				// TODO: Make semantics error if its not a literal
-				Thing thing{};
+				Blob blob{};
 				// TODO: Parse string escape sequences somewhere earlier
 				ParseNode* child = root->children[3]->children[0];
 				if (child->type == "<stringLiteral>") {
-					thing.size = child->val.size() - 1;
-					thing.data = malloc(thing.size);
-					memcpy(thing.data, child->val.c_str() + 1, thing.size - 1);
-					((char*)thing.data)[thing.size - 1] = '\0';
+					blob.size = child->val.size() - 1;
+					blob.data = malloc(blob.size);
+					memcpy(blob.data, child->val.c_str() + 1, blob.size - 1);
+					((char*)blob.data)[blob.size - 1] = '\0';
 				} else {
-					thing.size = sizes[root->children[0]->val];
-					thing.data = malloc(thing.size);
+					blob.size = sizes[root->children[0]->val];
+					blob.data = malloc(blob.size);
 					if (root->children[0]->val == "float") {
-						*(float*)thing.data = stof(child->val);
+						*(float*)blob.data = stof(child->val);
 					} else if (root->children[0]->val == "double") {
-						*(double*)thing.data = stod(child->val);
+						*(double*)blob.data = stod(child->val);
 					} else if (root->children[0]->val == "bool") {
-						*(char*)thing.data = child->val == "true";
+						*(char*)blob.data = child->val == "true";
 					} else {
+						// int or long
+
 						uint64_t tmp;
-						if (child->val[0] == '-') {
-							tmp = stoll(child->val);
-						} else {
-							tmp = stoull(child->val);
-						}
-						memcpy(thing.data, &tmp, thing.size);
+						tmp = stoll(child->val);
+						memcpy(blob.data, &tmp, blob.size);
 					}
 				}
-				data.push_back({root->children[1]->val, thing});
+				data.push_back({root->children[1]->val, blob});
 			}
-		} else {
+		} else { // local scope
 			if (root->children.size() != 2) { // definition also
 				ParseNode* child = root->children[3]->children[0];
 				if (child->type == "<stringLiteral>") {
-					Thing thing{};
-					thing.size = child->val.size() - 1;
-					thing.data = malloc(thing.size);
-					memcpy(thing.data, child->val.c_str() + 1, thing.size - 1);
-					((char*)thing.data)[thing.size - 1] = '\0';
-					data.push_back({root->children[1]->val, thing});
+					Blob blob{};
+					blob.size = child->val.size() - 1;
+					blob.data = malloc(blob.size);
+					memcpy(blob.data, child->val.c_str() + 1, blob.size - 1);
+					((char*)blob.data)[blob.size - 1] = '\0';
+					data.push_back({root->children[1]->val, blob});
 				} else {
 					uint64_t tmp;
 					if (root->children[0]->val == "float") {
@@ -122,11 +126,11 @@ void CodeGenerator::generateIR(ParseNode* root, vector<string>& code) {
 							tmp = stoull(child->val);
 						}
 					}
-					st.push_front({root->children[1]->val, tmp});
+					st.push_back({root->children[1]->val, sizes.at(root->children[0]->val)});
 					code.push_back("push C(" + to_string(sizes.at(root->children[0]->val)) + ')' + to_string(tmp));
 				}
 			} else {
-				st.push_front({root->children[1]->val, sizes.at(root->children[0]->val)});
+				st.push_back({root->children[1]->val, sizes.at(root->children[0]->val)});
 				code.push_back("alloc " + to_string(sizes.at(root->children[0]->val)));
 			}
 		}
@@ -151,37 +155,37 @@ void CodeGenerator::generateIR(ParseNode* root, vector<string>& code) {
 		// for strings
 
 		if (child->type == "<stringLiteral>") {
-			Thing thing = {};
-			thing.size = child->val.size() - 1;
-			thing.data = malloc(thing.size);
+			Blob blob = {};
+			blob.size = child->val.size() - 1;
+			blob.data = malloc(blob.size);
 
-			memcpy(thing.data, child->val.c_str() + 1, thing.size - 1);
+			memcpy(blob.data, child->val.c_str() + 1, blob.size - 1);
 
-			data.push_back({child->val, thing});
+			data.push_back({child->val, blob});
 		}
 
 		// every other type of literal
 
 		else {
-			code.push_back("push C" + child->val);
-			st.push_front({PLACEHOLDER, 8});
+			code.push_back("push C(8)" + child->val);
+			st.push_back({PLACEHOLDER, 8});
 		}
 	}
 
 	else if (root->type == "<variable>") {
 		code.push_back("push " + findVar(root->val));
-		st.push_front({root->val, 8});
+		st.push_back({root->val, 8});
 	}
 
 	else if (root->type == "<if>") {
 
 		// enter scope
-		st.push_front({PLACEHOLDER, 0});
+		st.push_back({PLACEHOLDER, 0});
 
 		// gen jmp
 		string label = labelify();
 		generateIR(root->children[0], code);
-		st.pop_front();
+		st.pop_back();
 		code.push_back("jz " + label);
 
 		// gen contents
@@ -199,11 +203,11 @@ void CodeGenerator::generateIR(ParseNode* root, vector<string>& code) {
 		// exit scope
 		int size = 0;
 		// keep going until we hit the scope marker (PLACEHOLDER, 0)
-		while (st.front().first != PLACEHOLDER || st.front().second != 0) {
-			size += st.front().second;
-			st.pop_front();
+		while (st.back().first != PLACEHOLDER || st.back().second != 0) {
+			size += st.back().second;
+			st.pop_back();
 		}
-		st.pop_front();
+		st.pop_back();
 		if (size != 0) {
 			code.push_back("dealloc " + to_string(size));
 		}
@@ -215,12 +219,12 @@ void CodeGenerator::generateIR(ParseNode* root, vector<string>& code) {
 		code.pop_back();
 
 		// enter scope
-		st.push_front({PLACEHOLDER, 0});
+		st.push_back({PLACEHOLDER, 0});
 
 		// gen jmp
 		string label = labelify();
 		generateIR(root->children[0], code);
-		st.pop_front();
+		st.pop_back();
 		code.push_back("jz " + label);
 
 		// gen contents
@@ -237,11 +241,11 @@ void CodeGenerator::generateIR(ParseNode* root, vector<string>& code) {
 		// exit scope
 		int size = 0;
 		// keep going until we hit the scope marker (PLACEHOLDER, 0)
-		while (st.front().first != PLACEHOLDER || st.front().second != 0) {
-			size += st.front().second;
-			st.pop_front();
+		while (st.back().first != PLACEHOLDER || st.back().second != 0) {
+			size += st.back().second;
+			st.pop_back();
 		}
-		st.pop_front();
+		st.pop_back();
 		if (size != 0) {
 			code.push_back("dealloc " + to_string(size));
 		}
@@ -253,7 +257,7 @@ void CodeGenerator::generateIR(ParseNode* root, vector<string>& code) {
 		code.pop_back();
 
 		// enter scope
-		st.push_front({PLACEHOLDER, 0});
+		st.push_back({PLACEHOLDER, 0});
 
 		// gen contents
 		for (auto child : root->children) {
@@ -264,11 +268,11 @@ void CodeGenerator::generateIR(ParseNode* root, vector<string>& code) {
 		// exit scope
 		int size = 0;
 		// keep going until we hit the scope marker (PLACEHOLDER, 0)
-		while (st.front().first != PLACEHOLDER || st.front().second != 0) {
-			size += st.front().second;
-			st.pop_front();
+		while (st.back().first != PLACEHOLDER || st.back().second != 0) {
+			size += st.back().second;
+			st.pop_back();
 		}
-		st.pop_front();
+		st.pop_back();
 		if (size != 0) {
 			code.push_back("dealloc " + to_string(size));
 		}
@@ -277,14 +281,14 @@ void CodeGenerator::generateIR(ParseNode* root, vector<string>& code) {
 	else if (root->type == "<while>") {
 
 		// enter scope
-		st.push_front({PLACEHOLDER, 0});
+		st.push_back({PLACEHOLDER, 0});
 
 		// gen jmp
 		string first = labelify();
 		string second = labelify();
 		code.push_back(first + ':');
 		generateIR(root->children[0], code);
-		st.pop_front();
+		st.pop_back();
 		code.push_back("jz " + second);
 
 		// gen contents
@@ -299,11 +303,11 @@ void CodeGenerator::generateIR(ParseNode* root, vector<string>& code) {
 		// exit scope
 		int size = 0;
 		// keep going until we hit the scope marker (PLACEHOLDER, 0)
-		while (st.front().second != 0) {
-			size += st.front().second;
-			st.pop_front();
+		while (st.back().second != 0) {
+			size += st.back().second;
+			st.pop_back();
 		}
-		st.pop_front();
+		st.pop_back();
 		if (size != 0) {
 			code.push_back("dealloc " + to_string(size));
 		}
@@ -312,7 +316,7 @@ void CodeGenerator::generateIR(ParseNode* root, vector<string>& code) {
 	else if (root->type == "<for>") {
 
 		// enter scope
-		st.push_front({PLACEHOLDER, 0});
+		st.push_back({PLACEHOLDER, 0});
 
 		// gen declar
 		generateIR(root->children[0], code);
@@ -324,7 +328,7 @@ void CodeGenerator::generateIR(ParseNode* root, vector<string>& code) {
 
 		// gen jmp
 		generateIR(root->children[1], code);
-		st.pop_front();
+		st.pop_back();
 		code.push_back("jz " + second);
 
 		// gen contents
@@ -344,11 +348,11 @@ void CodeGenerator::generateIR(ParseNode* root, vector<string>& code) {
 		// exit scope
 		int size = 0;
 		// keep going until we hit the scope marker (PLACEHOLDER, 0)
-		while (st.front().second != 0) {
-			size += st.front().second;
-			st.pop_front();
+		while (st.back().second != 0) {
+			size += st.back().second;
+			st.pop_back();
 		}
-		st.pop_front();
+		st.pop_back();
 		if (size != 0) {
 			code.push_back("dealloc " + to_string(size));
 		}
@@ -360,17 +364,17 @@ void CodeGenerator::generateIR(ParseNode* root, vector<string>& code) {
 		string name = root->children[0]->val;
 		code.push_back("pop " + findVar(name));
 
-		st.pop_front();
+		st.pop_back();
 	}
 
 	else if (root->type == "<unaryExpression>") {
 		// load operand
 		generateIR(root->children[1], code);
 
-		st.pop_front();
+		st.pop_back();
 
 		code.push_back(ops.at(root->children[0]->val + 'u'));
-		st.push_front({PLACEHOLDER, 8});
+		st.push_back({PLACEHOLDER, 8});
 	}
 
 	else if (root->type == "<binaryExpression>") {
@@ -381,11 +385,11 @@ void CodeGenerator::generateIR(ParseNode* root, vector<string>& code) {
 		// second operand
 		generateIR(root->children[2], code);
 
-		st.pop_front();
-		st.pop_front();
+		st.pop_back();
+		st.pop_back();
 
 		code.push_back(ops.at(root->children[1]->val));
-		st.push_front({PLACEHOLDER, 8});
+		st.push_back({PLACEHOLDER, 8});
 	}
 
 	else if (root->type == "<functionCall>") {
